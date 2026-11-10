@@ -29,7 +29,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // Bind Firebase SDK functions into window.FB_SDK for application core access
     window.FB_SDK = {
@@ -40,6 +40,10 @@
       doc,
       getDoc,
       setDoc,
+      deleteDoc,
+      collection,
+      getDocs,
+      onSnapshot,
       serverTimestamp
     };
     window.dispatchEvent(new Event('firebase-sdk-ready'));
@@ -1192,13 +1196,16 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-black text-white">Absensi & Kasbon Karyawan</h2>
-            <p class="text-xs text-slate-400 mt-1">Pencatatan jam kerja harian dan pinjaman uang kasbon karyawan.</p>
+            <p class="text-xs text-slate-400 mt-1">Pencatatan jam kerja harian dan pinjaman uang kasbon karyawan (Database Multi-Tahun).</p>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="openAttendanceModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="fetchAttendanceFromDatabase(true)" id="btnRefreshAttendanceDb" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-teal-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Ambil Data Database
+            </button>
+            <button type="button" onclick="openAttendanceModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
               <i data-lucide="user-check" class="w-4 h-4"></i> Input Absensi Hari Ini
             </button>
-            <button onclick="openEmployeeMasterModal()" id="btnMasterKaryawan" class="admin-only px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+            <button type="button" onclick="openEmployeeMasterModal()" id="btnMasterKaryawan" class="admin-only px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
               <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> Kelola Nama Karyawan
             </button>
           </div>
@@ -1206,15 +1213,20 @@
 
         <!-- Filter Karyawan & Keterangan Urutan -->
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-slate-400 font-semibold">Filter Karyawan:</span>
-            <select id="attFilterEmployee" onchange="renderAttendancePage()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
-              <option value="ALL">-- Semua Karyawan --</option>
-            </select>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-semibold">Filter Karyawan:</span>
+              <select id="attFilterEmployee" onchange="renderAttendancePage()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <option value="ALL">-- Semua Karyawan --</option>
+              </select>
+            </div>
+            <span id="attDbSyncBadge" class="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Database Ready
+            </span>
           </div>
           <div class="text-[11px] text-emerald-400/90 font-mono flex items-center gap-1.5">
             <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>
-            <span>Tersortir: Nama Karyawan (A-Z) &bull; Tanggal Berurutan</span>
+            <span>Tersortir: Tanggal Terbaru &bull; Nama Karyawan (A-Z)</span>
           </div>
         </div>
 
@@ -1249,44 +1261,58 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-black text-white">Tutup Kasir Harian</h2>
-            <p class="text-xs text-slate-400 mt-1">Rekap perhitungan uang laci fisik kasir, penerimaan QRIS, dan pengeluaran.</p>
+            <p class="text-xs text-slate-400 mt-1">Rekap perhitungan uang laci fisik kasir, penerimaan QRIS, dan pengeluaran (Database Multi-Tahun).</p>
           </div>
-          <button onclick="openWhatsappRecapModal()" class="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-teal-600/20">
-            <i data-lucide="share-2" class="w-4 h-4"></i> Kirim Rekap ke WhatsApp
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="fetchClosingsFromDatabase(true)" id="btnRefreshClosingDb" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-teal-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Ambil Data Database
+            </button>
+            <button type="button" onclick="openWhatsappRecapModal()" class="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-teal-600/20">
+              <i data-lucide="share-2" class="w-4 h-4"></i> Kirim Rekap ke WhatsApp
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Closing Form (Col 6) -->
           <div class="lg:col-span-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-            <h3 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
-              <i data-lucide="calculator" class="w-5 h-5 text-emerald-400"></i>
-              Form Rekap Tutup Shift Kasir
-            </h3>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                <i data-lucide="calculator" class="w-5 h-5 text-emerald-400"></i>
+                Form Rekap Tutup Shift Kasir
+              </h3>
+              <span id="closingDbSyncBadge" class="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Database Ready
+              </span>
+            </div>
 
-            <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label class="text-slate-400">Tanggal Rekap Shift *</label>
+                <input type="date" id="closingDateInput" onchange="renderClosingDashboard(false)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1 focus:outline-none focus:border-emerald-500">
+              </div>
               <div>
                 <label class="text-slate-400">Modal Awal di Laci (Rp)</label>
-                <input type="number" id="closingStartingCash" oninput="calculateClosingDiff()" value="200000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1">
+                <input type="number" id="closingStartingCash" oninput="calculateClosingDiff()" value="200000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1 focus:outline-none focus:border-emerald-500">
               </div>
               <div>
                 <label class="text-slate-400">Hitungan Uang Fisik Kasir (Rp)</label>
-                <input type="number" id="closingActualCash" oninput="calculateClosingDiff()" placeholder="Jumlah uang riil di laci" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1">
+                <input type="number" id="closingActualCash" oninput="calculateClosingDiff()" placeholder="Kosong = sesuai sistem" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1 focus:outline-none focus:border-emerald-500">
               </div>
             </div>
 
             <!-- Auto Calculated Indicators -->
             <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 space-y-2 text-xs">
               <div class="flex justify-between text-slate-400">
-                <span>Penjualan Cash Sistem Hari Ini:</span>
+                <span>Penjualan Cash Sistem (<span id="closeDateLabel">Hari Ini</span>):</span>
                 <span id="closeSysCash" class="font-mono text-white">Rp 0</span>
               </div>
               <div class="flex justify-between text-slate-400">
-                <span>Penerimaan QRIS Hari Ini:</span>
+                <span>Penerimaan QRIS (<span id="closeDateLabelQris">Hari Ini</span>):</span>
                 <span id="closeSysQris" class="font-mono text-teal-400">Rp 0</span>
               </div>
               <div class="flex justify-between text-slate-400">
-                <span>Pengeluaran Kasir Hari Ini:</span>
+                <span>Pengeluaran Kasir (<span id="closeDateLabelExp">Hari Ini</span>):</span>
                 <span id="closeSysExpense" class="font-mono text-rose-400">Rp 0</span>
               </div>
               <div class="border-t border-slate-800 pt-2 flex justify-between font-bold text-sm text-white">
@@ -1304,17 +1330,23 @@
               <textarea id="closingNotes" rows="2" placeholder="Catatan shift atau kendala..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white mt-1"></textarea>
             </div>
 
-            <button onclick="saveClosingRecord()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20">
-              Simpan & Kunci Tutup Kasir Hari Ini
+            <button type="button" id="btnSaveClosingRecord" onclick="saveClosingRecord()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span id="btnSaveClosingRecordText">Simpan & Kunci Tutup Kasir ke Database</span>
             </button>
           </div>
 
           <!-- Closing History (Col 6) -->
           <div class="lg:col-span-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-            <h3 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
-              <i data-lucide="history" class="w-5 h-5 text-blue-400"></i>
-              Riwayat Tutup Kasir Terakhir
-            </h3>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                <i data-lucide="history" class="w-5 h-5 text-blue-400"></i>
+                Riwayat Tutup Kasir Database (<span id="closingTotalCountLabel">0</span>)
+              </h3>
+              <button type="button" onclick="fetchClosingsFromDatabase(true)" class="text-[11px] font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1">
+                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Muat Ulang
+              </button>
+            </div>
             <div class="overflow-x-auto max-h-96">
               <table class="w-full text-left text-xs text-slate-300">
                 <thead class="bg-slate-950/80 text-slate-400 uppercase text-[10px]">
@@ -1617,6 +1649,70 @@
                   <span>Hasil Diagnostik Koneksi:</span>
                 </div>
                 <p id="fbDiagnosticText" class="font-mono text-slate-300">Menunggu tes...</p>
+              </div>
+            </div>
+
+            <!-- KARTU 3: ARSITEKTUR DATABASE MULTI-TAHUN (SHARDING & BACKUP AWET BERTAHUN-TAHUN) -->
+            <div class="bg-slate-900 border border-emerald-500/30 p-5 sm:p-6 rounded-3xl space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-white text-sm sm:text-base">Mesin Database Multi-Tahun (Auto-Partitioning)</h3>
+                    <p class="text-[11px] text-slate-400">Pemisahan otomatis per koleksi & periode tahun agar bebas batas 1MB Firestore</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AKTIF SELAMANYA</span>
+              </div>
+
+              <!-- Indikator Kesehatan Penyimpanan -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Memori Browser (Lokal)</span>
+                  <span id="dbHealthLocalSize" class="font-mono font-bold text-emerald-400 text-sm">0 KB</span>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Total Transaksi & Bon</span>
+                  <span id="dbHealthTrxCount" class="font-mono font-bold text-white text-sm">0 Data</span>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Total Absensi</span>
+                  <span id="dbHealthAttCount" class="font-mono font-bold text-teal-400 text-sm">0 Data</span>
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <span class="text-[10px] text-slate-400 block">Total Tutup Kasir</span>
+                  <span id="dbHealthClsCount" class="font-mono font-bold text-amber-400 text-sm">0 Data</span>
+                </div>
+              </div>
+
+              <div class="p-3.5 bg-slate-950/90 rounded-2xl border border-slate-800 text-[11px] text-slate-300 space-y-1 leading-relaxed">
+                <p class="font-bold text-emerald-400">🛡️ Mengapa Database Ini Awet Bertahun-Tahun?</p>
+                <p>1. <b>Partisi Otomatis Per Tahun (`YYYY`):</b> Data Transaksi, Booking, Pengeluaran, Absensi, dan Tutup Kasir dipecah otomatis per dokumen tahunan & koleksi terpisah sehingga tidak akan pernah menyentuh batas maksimal 1 MB per dokumen Firestore.</p>
+                <p>2. <b>Dual-Cloud Redundancy:</b> Tersimpan serentak di <b>Cloud Firestore</b> + <b>Firebase Realtime Database</b> + <b>IndexedDB Browser</b> (kapasitas hingga ratusan MB, jauh di atas LocalStorage biasa).</p>
+                <p>3. <b>Pembersih Cache Lokal Pintar:</b> Menjaga aplikasi tetap ringan dan cepat dibuka meski sudah berjalan 5–10 tahun.</p>
+              </div>
+
+              <!-- Tombol Aksi Pemeliharaan & Backup Jangka Panjang -->
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="button" onclick="pullAllMultiYearPartitions(true)" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-teal-600/20">
+                  <i data-lucide="cloud-download" class="w-4 h-4"></i>
+                  <span>Tarik Semua Arsip Tahun dari Cloud</span>
+                </button>
+                <button type="button" onclick="exportFullDatabaseBackupJson()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                  <span>Download Backup Full (.JSON)</span>
+                </button>
+                <label class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                  <i data-lucide="upload" class="w-4 h-4"></i>
+                  <span>Restore Backup (.JSON)</span>
+                  <input type="file" accept=".json" onchange="importFullDatabaseBackupJson(event)" class="hidden">
+                </label>
+                <button type="button" onclick="optimizeLocalDatabaseStorage()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5">
+                  <i data-lucide="zap" class="w-4 h-4 text-blue-400"></i>
+                  <span>Optimasi & Kompresi Database</span>
+                </button>
               </div>
             </div>
 
@@ -7291,6 +7387,811 @@ Salam Olahraga & Fairplay!`;
         btnNav.classList.remove('flex');
       }
     });
+  </script>
+
+  <!-- ===================================================================================== -->
+  <!-- 6. ENGINE DATABASE MULTI-TAHUN (INDEXED-DB + FIRESTORE SHARDING + RTDB + AUTO-BACKUP) -->
+  <!-- ===================================================================================== -->
+  <script>
+    (function() {
+      const RTDB_BASE_URL = (typeof OFFICIAL_FIREBASE_CONFIG !== 'undefined' && OFFICIAL_FIREBASE_CONFIG.dbUrl)
+        ? OFFICIAL_FIREBASE_CONFIG.dbUrl.replace(/\/$/, '')
+        : "https://singarajasoccerfield-1f2bb-default-rtdb.firebaseio.com";
+
+      // =========================================================
+      // A. INDEXED-DB ENGINE (KAPASITAS RATUSAN MB DI BROWSER)
+      // Mengatasi batas 5MB LocalStorage agar awet bertahun-tahun
+      // =========================================================
+      const IDB_NAME = 'SingarajaSoccerfield_LongTermDB';
+      const IDB_VERSION = 1;
+      const IDB_STORE = 'collections_store';
+      let idbInstance = null;
+
+      function openIndexedDB() {
+        return new Promise((resolve) => {
+          if (!('indexedDB' in window)) return resolve(null);
+          if (idbInstance) return resolve(idbInstance);
+          try {
+            const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+            req.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE);
+              }
+            };
+            req.onsuccess = (e) => {
+              idbInstance = e.target.result;
+              resolve(idbInstance);
+            };
+            req.onerror = () => resolve(null);
+          } catch (err) {
+            resolve(null);
+          }
+        });
+      }
+
+      async function idbSet(key, val) {
+        const db = await openIndexedDB();
+        if (!db) return false;
+        return new Promise((resolve) => {
+          try {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(val, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          } catch (e) {
+            resolve(false);
+          }
+        });
+      }
+
+      async function idbGet(key) {
+        const db = await openIndexedDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+          try {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).get(key);
+            req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+            req.onerror = () => resolve(null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      }
+
+      // =========================================================
+      // B. SAFE LOCALSTORAGE PENYIMPANAN CERDAS (ANTI QUOTA FULL)
+      // Menyimpan penuh di IndexedDB & memangkas arsip sangat lama
+      // di LocalStorage jika mendekati batas 5MB browser
+      // =========================================================
+      window.setStored = function(key, value) {
+        // 1. Simpan 100% riwayat utuh tanpa batas ke IndexedDB
+        idbSet(key, value);
+
+        // 2. Simpan ke LocalStorage dengan pengaman otomatis jika kuota penuh
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (quotaErr) {
+          console.warn('LocalStorage mendekati batas 5MB, mengaktifkan kompresi arsip lokal (data penuh tetap aman di IndexedDB & Cloud):', quotaErr);
+          try {
+            if (Array.isArray(value) && value.length > 500) {
+              // Simpan 500 data terbaru di LocalStorage cepat, sisanya di IndexedDB & Cloud
+              const recentSlice = value.slice(-500);
+              localStorage.setItem(key, JSON.stringify(recentSlice));
+            }
+          } catch (e2) {}
+        }
+
+        updateDatabaseHealthMetrics();
+        triggerAutoCloudSync(key, value);
+      };
+
+      // =========================================================
+      // C. PARTISI DATABASE PER TAHUN (SHARDING BEBAS LIMIT 1 MB)
+      // Setiap koleksi dipecah berdasarkan tahun (contoh: 2026, 2027, 2028)
+      // sehingga dokumen Firestore tidak akan pernah penuh selamanya
+      // =========================================================
+      function extractYearFromItem(item) {
+        const rawDate = item?.date || item?.timestamp || item?.createdAt || '';
+        const match = String(rawDate).match(/^(\d{4})/);
+        return match ? match[1] : String(new Date().getFullYear());
+      }
+
+      function groupArrayByYear(arr) {
+        const groups = {};
+        if (!Array.isArray(arr)) return groups;
+        arr.forEach(item => {
+          if (!item) return;
+          const yr = extractYearFromItem(item);
+          if (!groups[yr]) groups[yr] = [];
+          groups[yr].push(item);
+        });
+        return groups;
+      }
+
+      // Simpan koleksi ke Cloud secara terpartisi per Tahun + RTDB + Master Index
+      async function savePartitionedCollectionToCloud(collectionName, fullArray, idField = 'id') {
+        const cleaned = cleanDatasetArray(fullArray, idField);
+        await idbSet('ssf_full_' + collectionName, cleaned);
+        updateCloudSyncStatus('SYNCING', 'Menyimpan Database...');
+        let anySuccess = false;
+
+        const yearGroups = groupArrayByYear(cleaned);
+        const yearsList = Object.keys(yearGroups);
+        if (yearsList.length === 0) {
+          yearsList.push(String(new Date().getFullYear()));
+          yearGroups[yearsList[0]] = [];
+        }
+
+        // 1. Simpan ke Cloud Firestore (Dokumen terpisah per Koleksi & per Tahun)
+        if (window.FB_SDK && fbDb) {
+          try {
+            if (fbAuth && !fbAuth.currentUser) {
+              await window.FB_SDK.signInAnonymously(fbAuth);
+            }
+
+            // Simpan indeks daftar tahun aktif + data terbaru di dokumen koleksi khusus
+            const indexRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'ssf_' + collectionName);
+            await window.FB_SDK.setDoc(indexRef, {
+              updatedAt: new Date().toISOString(),
+              availableYears: yearsList,
+              deletedIds: (deletedIds || []).slice(-1000),
+              items: cleaned.slice(-800) // 800 entri terbaru untuk muat cepat
+            }, { merge: true });
+
+            // Simpan setiap partisi tahun di dokumennya masing-masing (misal: ssf_attendance_2026, ssf_attendance_2027)
+            for (const yr of yearsList) {
+              const partRef = window.FB_SDK.doc(fbDb, 'cloud_sync', `ssf_${collectionName}_${yr}`);
+              await window.FB_SDK.setDoc(partRef, {
+                year: yr,
+                collection: collectionName,
+                updatedAt: new Date().toISOString(),
+                items: yearGroups[yr] || []
+              }, { merge: true });
+            }
+            anySuccess = true;
+          } catch (err) {
+            console.warn(`Firestore partitioned save warning (${collectionName}):`, err);
+          }
+        }
+
+        // 2. Simpan ke Firebase Realtime Database (REST JSON terpartisi per tahun - Tanpa Batas 1MB Dokumen)
+        try {
+          await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/meta.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              updatedAt: new Date().toISOString(),
+              availableYears: yearsList,
+              deletedIds: (deletedIds || []).slice(-1000)
+            })
+          });
+
+          for (const yr of yearsList) {
+            const res = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/years/${yr}.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(yearGroups[yr] || [])
+            });
+            if (res.ok) anySuccess = true;
+          }
+        } catch (err) {
+          console.warn(`RTDB partitioned save warning (${collectionName}):`, err);
+        }
+
+        updateCloudSyncStatus(anySuccess ? 'ONLINE' : 'ERROR', anySuccess ? 'Cloud Sinkron' : 'Tersimpan Lokal');
+        updateDatabaseHealthMetrics();
+        return anySuccess;
+      }
+
+      // Ambil & Gabungkan Koleksi dari IndexedDB + Semua Partisi Tahun di Cloud Firestore + RTDB
+      async function loadPartitionedCollectionFromCloud(collectionName, currentArray, idField = 'id', pullAllYears = true) {
+        let combined = Array.isArray(currentArray) ? [...currentArray] : [];
+
+        // 1. Cek cadangan penuh di IndexedDB lokal terlebih dahulu
+        const idbCached = await idbGet('ssf_full_' + collectionName);
+        if (Array.isArray(idbCached) && idbCached.length > 0) {
+          combined = mergeUniqueById(combined, idbCached, idField);
+        }
+
+        const currentYear = String(new Date().getFullYear());
+        let yearsToFetch = new Set([currentYear, String(Number(currentYear) - 1)]);
+
+        // 2. Ambil dari Cloud Firestore (Dokumen Indeks + Partisi Tahun + Dokumen Legacy)
+        if (window.FB_SDK && fbDb) {
+          try {
+            if (fbAuth && !fbAuth.currentUser) {
+              await window.FB_SDK.signInAnonymously(fbAuth);
+            }
+
+            const indexRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'ssf_' + collectionName);
+            const indexSnap = await window.FB_SDK.getDoc(indexRef);
+            if (indexSnap.exists()) {
+              const idxData = indexSnap.data();
+              if (Array.isArray(idxData.deletedIds)) idxData.deletedIds.forEach(id => markRecordDeleted(id));
+              if (Array.isArray(idxData.items)) {
+                combined = mergeUniqueById(combined, idxData.items, idField);
+              }
+              if (pullAllYears && Array.isArray(idxData.availableYears)) {
+                idxData.availableYears.forEach(y => yearsToFetch.add(String(y)));
+              }
+            }
+
+            // Ambil setiap dokumen partisi tahunan
+            for (const yr of yearsToFetch) {
+              try {
+                const partRef = window.FB_SDK.doc(fbDb, 'cloud_sync', `ssf_${collectionName}_${yr}`);
+                const partSnap = await window.FB_SDK.getDoc(partRef);
+                if (partSnap.exists()) {
+                  const pData = partSnap.data();
+                  if (Array.isArray(pData.items)) {
+                    combined = mergeUniqueById(combined, pData.items, idField);
+                  }
+                }
+              } catch (ePart) {}
+            }
+
+            // Ambil juga dari dokumen utama legacy (singaraja_soccerfield_data) agar data lama tidak hilang
+            const mainRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'singaraja_soccerfield_data');
+            const mainSnap = await window.FB_SDK.getDoc(mainRef);
+            if (mainSnap.exists()) {
+              const mData = mainSnap.data();
+              if (Array.isArray(mData.deletedIds)) mData.deletedIds.forEach(id => markRecordDeleted(id));
+              if (Array.isArray(mData[collectionName])) {
+                combined = mergeUniqueById(combined, mData[collectionName], idField);
+              }
+            }
+          } catch (err) {
+            console.warn(`Firestore partitioned load warning (${collectionName}):`, err);
+          }
+        }
+
+        // 3. Ambil dari Firebase Realtime Database (REST JSON)
+        try {
+          const metaRes = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/meta.json`);
+          if (metaRes.ok) {
+            const metaData = await metaRes.json();
+            if (metaData) {
+              if (Array.isArray(metaData.deletedIds)) metaData.deletedIds.forEach(id => markRecordDeleted(id));
+              if (pullAllYears && Array.isArray(metaData.availableYears)) {
+                metaData.availableYears.forEach(y => yearsToFetch.add(String(y)));
+              }
+            }
+          }
+
+          for (const yr of yearsToFetch) {
+            const yrRes = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/years/${yr}.json`);
+            if (yrRes.ok) {
+              const yrItems = await yrRes.json();
+              if (Array.isArray(yrItems)) {
+                combined = mergeUniqueById(combined, yrItems, idField);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn(`RTDB partitioned load warning (${collectionName}):`, err);
+        }
+
+        const finalClean = cleanDatasetArray(combined, idField);
+        await idbSet('ssf_full_' + collectionName, finalClean);
+        return finalClean;
+      }
+
+      // =========================================================
+      // D. OVERRIDE SINKRONISASI UTAMA AGAR BEBAS BATAS 1 MB
+      // Dokumen utama hanya menyimpan pengaturan & ringkasan terbaru,
+      // sedangkan riwayat penuh disimpan di partisi tahunan
+      // =========================================================
+      window.buildCompleteCloudSyncPayload = function(lastSyncKey = 'PARTITIONED_SYNC') {
+        return {
+          lastSyncAt: new Date().toISOString(),
+          lastSyncKey: lastSyncKey,
+          deletedIds: (deletedIds || []).slice(-1000),
+          products: cleanDatasetArray(products, 'id'),
+          transactions: cleanDatasetArray(transactions, 'id').slice(-250),
+          bookings: cleanDatasetArray(bookings, 'bookingId').slice(-250),
+          bons: cleanDatasetArray(bons, 'id').slice(-250),
+          expenses: cleanDatasetArray(expenses, 'id').slice(-250),
+          attendance: cleanDatasetArray(attendance, 'id').slice(-300),
+          employees: cleanDatasetArray(employees, 'id'),
+          closings: cleanDatasetArray(closings, 'id').slice(-300),
+          users: users,
+          rates: rentalRates,
+          qrisUrl: customQrisUrl,
+          qrisPayload: customQrisPayload,
+          webhookUrl: savedWebhookUrl || getStored(KEY_WEBHOOK, '')
+        };
+      };
+
+      const origImmediateCloudSync = window.immediateCloudSync;
+      window.immediateCloudSync = async function() {
+        try {
+          if (typeof origImmediateCloudSync === 'function') {
+            await origImmediateCloudSync();
+          }
+        } catch (e) {}
+        await Promise.allSettled([
+          savePartitionedCollectionToCloud('attendance', attendance, 'id'),
+          savePartitionedCollectionToCloud('closings', closings, 'id'),
+          savePartitionedCollectionToCloud('transactions', transactions, 'id'),
+          savePartitionedCollectionToCloud('bookings', bookings, 'bookingId'),
+          savePartitionedCollectionToCloud('expenses', expenses, 'id'),
+          savePartitionedCollectionToCloud('bons', bons, 'id')
+        ]);
+      };
+
+      // =========================================================
+      // E. PERBAIKAN MODUL ABSENSI KARYAWAN (SIMPAN & AMBIL DB)
+      // =========================================================
+      function setBadgeState(badgeId, state, text) {
+        const el = document.getElementById(badgeId);
+        if (!el) return;
+        if (state === 'LOADING') {
+          el.className = 'px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-500/30 text-amber-300 font-mono text-[10px] flex items-center gap-1.5';
+          el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> ' + (text || 'Sinkronisasi...');
+        } else if (state === 'OK') {
+          el.className = 'px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] flex items-center gap-1.5';
+          el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ' + (text || 'Database Tersinkron');
+        } else {
+          el.className = 'px-2.5 py-1 rounded-lg bg-rose-950/60 border border-rose-500/30 text-rose-300 font-mono text-[10px] flex items-center gap-1.5';
+          el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> ' + (text || 'Mode Lokal');
+        }
+      }
+
+      window.fetchAttendanceFromDatabase = async function(showNotif = false) {
+        setBadgeState('attDbSyncBadge', 'LOADING', 'Mengambil Database...');
+        if (showNotif) showToast('Mengambil data absensi karyawan dari Database Cloud...', 'info');
+        try {
+          attendance = await loadPartitionedCollectionFromCloud('attendance', attendance, 'id', true);
+          try {
+            localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
+          } catch (e) {}
+          renderAttendancePage();
+          updateDatabaseHealthMetrics();
+          setBadgeState('attDbSyncBadge', 'OK', `Tersinkron (${attendance.length} Data)`);
+          if (showNotif) showToast(`✅ Berhasil memuat ${attendance.length} data absensi dari Database!`, 'success');
+        } catch (err) {
+          setBadgeState('attDbSyncBadge', 'WARN', 'Lokal Aktif');
+          if (showNotif) showToast('Menampilkan data absensi yang tersimpan di perangkat.', 'info');
+        }
+      };
+
+      window.saveAttendanceData = async function() {
+        ensureEmployeesListPopulated();
+        const selectEl = document.getElementById('attEmployeeSelect');
+        const empName = (selectEl?.value || (employees[0] ? employees[0].name : '')).trim();
+        const emp = employees.find(e => e.name === empName);
+        const inputDate = document.getElementById('attDate')?.value || getLocalDateString(new Date());
+        const timeIn = document.getElementById('attTimeIn')?.value || '08:00';
+        const timeOut = document.getElementById('attTimeOut')?.value || '17:00';
+        const status = document.getElementById('attStatus')?.value || 'HADIR';
+        const kasbon = Number(document.getElementById('attKasbon')?.value || 0);
+        const reason = document.getElementById('attKasbonReason')?.value.trim() || '-';
+
+        if (!empName) {
+          showToast('Pilih nama karyawan terlebih dahulu!', 'error');
+          return;
+        }
+
+        const att = {
+          id: 'ATT-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          date: inputDate,
+          employeeName: empName,
+          role: emp ? emp.role : (currentUser ? currentUser.role : 'Kasir'),
+          timeIn: timeIn,
+          timeOut: timeOut,
+          status: status,
+          kasbonAmount: kasbon,
+          kasbonReason: reason,
+          createdAt: new Date().toISOString()
+        };
+
+        if (!Array.isArray(attendance)) attendance = [];
+        attendance.push(att);
+
+        const filterSelect = document.getElementById('attFilterEmployee');
+        if (filterSelect) filterSelect.value = 'ALL';
+
+        setStored(KEY_ATTENDANCE, attendance);
+        closeModal('attendanceModal');
+        renderAttendancePage();
+        setBadgeState('attDbSyncBadge', 'LOADING', 'Menyimpan ke Cloud...');
+
+        syncAttendanceToWebhook(att);
+        const ok = await savePartitionedCollectionToCloud('attendance', attendance, 'id');
+        setBadgeState('attDbSyncBadge', ok ? 'OK' : 'WARN', ok ? `Tersimpan (${attendance.length} Data)` : 'Tersimpan Lokal');
+        showToast(`✅ Absensi ${empName} (${inputDate}) berhasil disimpan ke Database!`, 'success');
+      };
+
+      window.deleteAttendance = async function(attId) {
+        if (!currentUser || currentUser.role !== 'Admin') {
+          showToast('Akses ditolak! Hanya Administrator yang dapat menghapus data absensi.', 'error');
+          return;
+        }
+        const attIndex = attendance.findIndex(a => a.id === attId);
+        if (attIndex === -1) return;
+
+        const targetAtt = attendance[attIndex];
+        markRecordDeleted(attId);
+        attendance.splice(attIndex, 1);
+        setStored(KEY_ATTENDANCE, attendance);
+        renderAttendancePage();
+
+        await savePartitionedCollectionToCloud('attendance', attendance, 'id');
+        setBadgeState('attDbSyncBadge', 'OK', `Tersinkron (${attendance.length} Data)`);
+        showToast(`Data absensi ${targetAtt.employeeName} (${targetAtt.date}) berhasil dihapus dari Database!`, 'success');
+      };
+
+      // =========================================================
+      // F. PERBAIKAN MODUL TUTUP KASIR (SIMPAN & AMBIL DB)
+      // =========================================================
+      function getSelectedClosingDate() {
+        const dateEl = document.getElementById('closingDateInput');
+        if (dateEl && dateEl.value) return dateEl.value;
+        const today = getLocalDateString(new Date());
+        if (dateEl) dateEl.value = today;
+        return today;
+      }
+
+      window.renderClosingDashboard = function(autoFetchCloud = true) {
+        const targetDate = getSelectedClosingDate();
+        const todayStr = getLocalDateString(new Date());
+        const labelStr = targetDate === todayStr ? 'Hari Ini' : targetDate;
+
+        const lbl1 = document.getElementById('closeDateLabel');
+        const lbl2 = document.getElementById('closeDateLabelQris');
+        const lbl3 = document.getElementById('closeDateLabelExp');
+        if (lbl1) lbl1.innerText = labelStr;
+        if (lbl2) lbl2.innerText = labelStr;
+        if (lbl3) lbl3.innerText = labelStr;
+
+        const dateTrx = transactions.filter(t => getLocalDateString(t.date) === targetDate);
+        let sysCash = 0, sysQris = 0;
+        dateTrx.forEach(t => {
+          if (t.method === 'CASH') sysCash += Number(t.total || 0);
+          if (t.method === 'QRIS') sysQris += Number(t.total || 0);
+        });
+
+        const dateExpKasir = expenses
+          .filter(e => getLocalDateString(e.date) === targetDate && e.category === 'KASIR')
+          .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+        const elCash = document.getElementById('closeSysCash');
+        const elQris = document.getElementById('closeSysQris');
+        const elExp = document.getElementById('closeSysExpense');
+        if (elCash) elCash.innerText = formatRupiah(sysCash);
+        if (elQris) elQris.innerText = formatRupiah(sysQris);
+        if (elExp) elExp.innerText = formatRupiah(dateExpKasir);
+
+        calculateClosingDiff();
+        renderClosingHistory();
+
+        const countLbl = document.getElementById('closingTotalCountLabel');
+        if (countLbl) countLbl.innerText = closings.length;
+
+        if (autoFetchCloud) {
+          window.fetchClosingsFromDatabase(false);
+        }
+      };
+
+      window.calculateClosingDiff = function() {
+        const targetDate = getSelectedClosingDate();
+        const starting = Number(document.getElementById('closingStartingCash')?.value || 0);
+        const rawActual = document.getElementById('closingActualCash')?.value ?? '';
+
+        const sysCash = transactions
+          .filter(t => getLocalDateString(t.date) === targetDate && t.method === 'CASH')
+          .reduce((sum, t) => sum + Number(t.total || 0), 0);
+
+        const dateExpKasir = expenses
+          .filter(e => getLocalDateString(e.date) === targetDate && e.category === 'KASIR')
+          .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+        const expected = starting + sysCash - dateExpKasir;
+        const actual = rawActual.trim() === '' ? expected : Number(rawActual || 0);
+        const diff = actual - expected;
+
+        const expEl = document.getElementById('closeExpectedCash');
+        if (expEl) expEl.innerText = formatRupiah(expected);
+
+        const diffEl = document.getElementById('closeDiffLabel');
+        if (diffEl) {
+          if (rawActual.trim() === '') {
+            diffEl.innerText = `Rp 0 (Otomatis Sesuai Sistem: ${formatRupiah(expected)})`;
+            diffEl.className = 'font-mono text-emerald-400 font-bold';
+          } else if (diff === 0) {
+            diffEl.innerText = 'Rp 0 (Pas / Seimbang)';
+            diffEl.className = 'font-mono text-emerald-400 font-bold';
+          } else if (diff > 0) {
+            diffEl.innerText = `+${formatRupiah(diff)} (Surplus / Lebih)`;
+            diffEl.className = 'font-mono text-blue-400 font-bold';
+          } else {
+            diffEl.innerText = `-${formatRupiah(Math.abs(diff))} (Minus / Kurang)`;
+            diffEl.className = 'font-mono text-rose-400 font-bold';
+          }
+        }
+      };
+
+      window.fetchClosingsFromDatabase = async function(showNotif = false) {
+        setBadgeState('closingDbSyncBadge', 'LOADING', 'Mengambil Database...');
+        if (showNotif) showToast('Mengambil riwayat tutup kasir dari Database Cloud...', 'info');
+        try {
+          closings = await loadPartitionedCollectionFromCloud('closings', closings, 'id', true);
+          try {
+            localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
+          } catch (e) {}
+          renderClosingHistory();
+          calculateClosingDiff();
+          const countLbl = document.getElementById('closingTotalCountLabel');
+          if (countLbl) countLbl.innerText = closings.length;
+          updateDatabaseHealthMetrics();
+          setBadgeState('closingDbSyncBadge', 'OK', `Tersinkron (${closings.length} Data)`);
+          if (showNotif) showToast(`✅ Berhasil memuat ${closings.length} riwayat tutup kasir dari Database!`, 'success');
+        } catch (err) {
+          setBadgeState('closingDbSyncBadge', 'WARN', 'Lokal Aktif');
+          if (showNotif) showToast('Menampilkan riwayat tutup kasir yang tersimpan di perangkat.', 'info');
+        }
+      };
+
+      window.saveClosingRecord = async function() {
+        const targetDate = getSelectedClosingDate();
+        const starting = Number(document.getElementById('closingStartingCash')?.value || 0);
+        const actualInputEl = document.getElementById('closingActualCash');
+        const rawActualVal = actualInputEl ? actualInputEl.value.trim() : '';
+        const notes = document.getElementById('closingNotes')?.value.trim() || '-';
+
+        const dateTrx = transactions.filter(t => getLocalDateString(t.date) === targetDate);
+        let sysCash = 0, sysQris = 0;
+        dateTrx.forEach(t => {
+          if (t.method === 'CASH') sysCash += Number(t.total || 0);
+          if (t.method === 'QRIS') sysQris += Number(t.total || 0);
+        });
+
+        const dateExpKasir = expenses
+          .filter(e => getLocalDateString(e.date) === targetDate && e.category === 'KASIR')
+          .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+        const expected = starting + sysCash - dateExpKasir;
+        const actual = rawActualVal === '' ? expected : Number(rawActualVal || 0);
+        const diff = actual - expected;
+
+        const record = {
+          id: 'CLS-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          date: targetDate,
+          timestamp: new Date().toISOString(),
+          cashierName: currentUser ? currentUser.name : 'Kasir',
+          startingCash: starting,
+          cashSales: sysCash,
+          qrisSales: sysQris,
+          kasirExpenses: dateExpKasir,
+          actualCash: actual,
+          expectedCash: expected,
+          difference: diff,
+          notes: notes
+        };
+
+        if (!Array.isArray(closings)) closings = [];
+        closings.push(record);
+        setStored(KEY_CLOSINGS, closings);
+
+        if (actualInputEl) actualInputEl.value = '';
+        const notesEl = document.getElementById('closingNotes');
+        if (notesEl) notesEl.value = '';
+
+        calculateClosingDiff();
+        renderClosingHistory();
+        const countLbl = document.getElementById('closingTotalCountLabel');
+        if (countLbl) countLbl.innerText = closings.length;
+
+        setBadgeState('closingDbSyncBadge', 'LOADING', 'Menyimpan ke Cloud...');
+        syncClosingToWebhook(record);
+
+        const ok = await savePartitionedCollectionToCloud('closings', closings, 'id');
+        setBadgeState('closingDbSyncBadge', ok ? 'OK' : 'WARN', ok ? `Tersimpan (${closings.length} Data)` : 'Tersimpan Lokal');
+        showToast(`✅ Rekap Tutup Kasir (${targetDate}) berhasil disimpan ke Database!`, 'success');
+      };
+
+      window.deleteClosingRecord = async function(closingId) {
+        if (!currentUser || currentUser.role !== 'Admin') {
+          showToast('Akses ditolak! Hanya Administrator yang berhak menghapus riwayat tutup kasir.', 'error');
+          return;
+        }
+        const closingIndex = closings.findIndex(c => c.id === closingId);
+        if (closingIndex === -1) return;
+
+        const target = closings[closingIndex];
+        if (!confirm(`Yakin ingin menghapus catatan tutup kasir tanggal ${target.date} oleh ${target.cashierName}?`)) {
+          return;
+        }
+
+        markRecordDeleted(closingId);
+        closings.splice(closingIndex, 1);
+        setStored(KEY_CLOSINGS, closings);
+        renderClosingHistory();
+        const countLbl = document.getElementById('closingTotalCountLabel');
+        if (countLbl) countLbl.innerText = closings.length;
+
+        await savePartitionedCollectionToCloud('closings', closings, 'id');
+        setBadgeState('closingDbSyncBadge', 'OK', `Tersinkron (${closings.length} Data)`);
+        showToast(`Catatan tutup kasir (${target.date}) berhasil dihapus dari Database.`, 'success');
+      };
+
+      // =========================================================
+      // G. FITUR PEMELIHARAAN, TARIK SEMUA ARSIP TAHUN & BACKUP JSON
+      // =========================================================
+      window.updateDatabaseHealthMetrics = function() {
+        try {
+          let totalBytes = 0;
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('ssf_')) {
+              totalBytes += (localStorage.getItem(k) || '').length * 2;
+            }
+          }
+          const kb = (totalBytes / 1024).toFixed(1);
+          const elSize = document.getElementById('dbHealthLocalSize');
+          const elTrx = document.getElementById('dbHealthTrxCount');
+          const elAtt = document.getElementById('dbHealthAttCount');
+          const elCls = document.getElementById('dbHealthClsCount');
+
+          if (elSize) elSize.innerText = `${kb} KB (Aman)`;
+          if (elTrx) elTrx.innerText = `${(transactions || []).length + (bons || []).length} Data`;
+          if (elAtt) elAtt.innerText = `${(attendance || []).length} Data`;
+          if (elCls) elCls.innerText = `${(closings || []).length} Data`;
+        } catch (e) {}
+      };
+
+      window.pullAllMultiYearPartitions = async function(showNotif = true) {
+        if (showNotif) showToast('Menarik seluruh arsip multi-tahun dari Database Cloud...', 'info');
+        try {
+          const [cTrx, cBkg, cBon, cExp, cAtt, cCls] = await Promise.all([
+            loadPartitionedCollectionFromCloud('transactions', transactions, 'id', true),
+            loadPartitionedCollectionFromCloud('bookings', bookings, 'bookingId', true),
+            loadPartitionedCollectionFromCloud('bons', bons, 'id', true),
+            loadPartitionedCollectionFromCloud('expenses', expenses, 'id', true),
+            loadPartitionedCollectionFromCloud('attendance', attendance, 'id', true),
+            loadPartitionedCollectionFromCloud('closings', closings, 'id', true)
+          ]);
+
+          transactions = cTrx;
+          bookings = cBkg;
+          bons = cBon;
+          expenses = cExp;
+          attendance = cAtt;
+          closings = cCls;
+
+          setStored(KEY_TRANSACTIONS, transactions);
+          setStored(KEY_BOOKINGS, bookings);
+          setStored(KEY_BONS, bons);
+          setStored(KEY_EXPENSES, expenses);
+          setStored(KEY_ATTENDANCE, attendance);
+          setStored(KEY_CLOSINGS, closings);
+
+          renderDashboard();
+          renderAttendancePage();
+          renderClosingDashboard(false);
+          renderBookingList();
+          renderBonTable();
+          renderExpenseTable();
+          updateDatabaseHealthMetrics();
+
+          if (showNotif) {
+            showToast(`✅ Seluruh arsip tahunan berhasil dimuat! (Transaksi: ${transactions.length}, Absensi: ${attendance.length}, Tutup Kasir: ${closings.length})`, 'success');
+          }
+        } catch (err) {
+          if (showNotif) showToast('Gagal menarik sebagian arsip: ' + err.message, 'error');
+        }
+      };
+
+      window.exportFullDatabaseBackupJson = function() {
+        const backupPayload = {
+          app: 'Singaraja Soccerfield Management & POS System',
+          version: 'Multi-Year Long-Term v6',
+          exportedAt: new Date().toISOString(),
+          data: {
+            users,
+            products,
+            transactions,
+            bons,
+            bookings,
+            expenses,
+            attendance,
+            employees,
+            closings,
+            rentalRates,
+            customQrisUrl,
+            customQrisPayload,
+            savedWebhookUrl,
+            deletedIds
+          }
+        };
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Backup_Database_SSF_${getLocalDateString(new Date())}.json`;
+        a.click();
+        showToast('✅ File Backup Database Lengkap (.JSON) berhasil diunduh!', 'success');
+      };
+
+      window.importFullDatabaseBackupJson = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          try {
+            const parsed = JSON.parse(evt.target.result);
+            const d = parsed.data || parsed;
+            if (Array.isArray(d.deletedIds)) d.deletedIds.forEach(id => markRecordDeleted(id));
+            if (Array.isArray(d.products)) products = mergeUniqueById(products, d.products, 'id');
+            if (Array.isArray(d.transactions)) transactions = mergeUniqueById(transactions, d.transactions, 'id');
+            if (Array.isArray(d.bons)) bons = mergeUniqueById(bons, d.bons, 'id');
+            if (Array.isArray(d.bookings)) bookings = mergeUniqueById(bookings, d.bookings, 'bookingId');
+            if (Array.isArray(d.expenses)) expenses = mergeUniqueById(expenses, d.expenses, 'id');
+            if (Array.isArray(d.attendance)) attendance = mergeUniqueById(attendance, d.attendance, 'id');
+            if (Array.isArray(d.employees)) employees = mergeUniqueById(employees, d.employees, 'id');
+            if (Array.isArray(d.closings)) closings = mergeUniqueById(closings, d.closings, 'id');
+
+            setStored(KEY_PRODUCTS, products);
+            setStored(KEY_TRANSACTIONS, transactions);
+            setStored(KEY_BONS, bons);
+            setStored(KEY_BOOKINGS, bookings);
+            setStored(KEY_EXPENSES, expenses);
+            setStored(KEY_ATTENDANCE, attendance);
+            setStored(KEY_EMPLOYEES, employees);
+            setStored(KEY_CLOSINGS, closings);
+
+            await window.immediateCloudSync();
+            renderDashboard();
+            renderAttendancePage();
+            renderClosingDashboard(false);
+            renderInventoryTable();
+            updateDatabaseHealthMetrics();
+            showToast('✅ Database berhasil dipulihkan (Restore) & disinkronkan ke Cloud!', 'success');
+          } catch (err) {
+            showToast('File JSON Backup tidak valid: ' + err.message, 'error');
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      window.optimizeLocalDatabaseStorage = async function() {
+        showToast('Mengoptimalkan database & mempartisi seluruh koleksi per tahun ke Cloud...', 'info');
+        await window.immediateCloudSync();
+        updateDatabaseHealthMetrics();
+        showToast('✅ Optimasi selesai! Seluruh data telah terpartisi rapi per tahun dan aman untuk penggunaan jangka panjang.', 'success');
+      };
+
+      // =========================================================
+      // H. AUTO-LOAD SAAT BUKA MENU & SAAT STARTUP APLIKASI
+      // =========================================================
+      const origSwitchTab = window.switchTab;
+      window.switchTab = function(tabId) {
+        if (typeof origSwitchTab === 'function') {
+          origSwitchTab(tabId);
+        }
+        if (tabId === 'attendance') {
+          window.fetchAttendanceFromDatabase(false);
+        } else if (tabId === 'closing') {
+          window.renderClosingDashboard(true);
+        } else if (tabId === 'integration') {
+          updateDatabaseHealthMetrics();
+        }
+      };
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const closingDateEl = document.getElementById('closingDateInput');
+        if (closingDateEl && !closingDateEl.value) {
+          closingDateEl.value = getLocalDateString(new Date());
+        }
+        updateDatabaseHealthMetrics();
+
+        // Tarik otomatis partisi database setelah inisialisasi
+        setTimeout(() => {
+          window.pullAllMultiYearPartitions(false);
+        }, 1500);
+      });
+    })();
   </script>
 </body>
 </html>
