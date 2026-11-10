@@ -1,7 +1,7 @@
 {
   "id": "./index.html",
   "name": "Singaraja Soccerfield - Management & POS System",
-  "short_name": "SSF POS",
+  "short_name": "SSF POS V2",
   "description": "Sistem Kasir POS, Booking Lapangan & Operasional Singaraja Soccerfield",
   "start_url": "./index.html",
   "scope": "./",
