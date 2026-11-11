@@ -52,7 +52,7 @@
     },
     {
       "src": "./screenshot-wide.png",
-      "sizes": "1280x720",
+      "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Dashboard Manajemen Singaraja Soccerfield"
