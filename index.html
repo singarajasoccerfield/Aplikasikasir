@@ -193,9 +193,7 @@
       <div class="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
       
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white shadow-lg shadow-emerald-500/20 mb-3">
-          <i data-lucide="shield-check" class="w-8 h-8"></i>
-        </div>
+        <img src="icon-192.png" alt="Logo Singaraja Soccerfield" class="w-20 h-20 object-contain rounded-2xl shadow-lg shadow-red-900/30 mb-3 mx-auto">
         <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">SINGARAJA SOCCERFIELD</h2>
         <p class="text-xs text-slate-400 mt-1">Sistem Kasir, Booking Lapangan & Operasional</p>
       </div>
@@ -248,9 +246,7 @@
           
           <!-- Logo & Brand -->
           <div class="flex items-center gap-2 sm:gap-3">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-600/30 flex-shrink-0">
-              <i data-lucide="activity" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-            </div>
+            <img src="icon-192.png" alt="Logo Singaraja Soccerfield" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain flex-shrink-0">
             <div>
               <div class="flex items-center gap-1.5 sm:gap-2">
                 <h1 class="text-sm sm:text-base md:text-lg font-black tracking-tight text-white truncate max-w-[170px] sm:max-w-none">SINGARAJA SOCCERFIELD</h1>
@@ -973,16 +969,8 @@
                 </div>
               </div>
               <!-- LOGO RESMI SINGARAJA SOCCER FIELD (PREVIEW LAYAR) -->
-              <div class="w-32 sm:w-40 h-auto flex items-center justify-end flex-shrink-0" id="prevInvLogoContainer">
-                <svg viewBox="0 0 430 140" class="w-full h-auto drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Monogram Hexagon Double S -->
-                  <g fill="#1f2c33">
-                    <polygon points="56,6 10,32 10,48 56,22 102,48 102,74 88,66 88,56 56,38 24,56 24,84 56,102 70,94 70,80 56,88 38,78 38,64 56,54 74,64 74,104 56,114 24,96 10,104 10,108 56,134 102,108 102,92 56,118 10,92 10,66 24,74 24,84 56,102 88,84 88,56 56,38 42,46 42,60 56,52 74,62 74,76 56,86 38,76 38,36 56,26 88,44 102,36" />
-                  </g>
-                  <!-- Teks Branding Singaraja Soccer Field -->
-                  <text x="135" y="58" font-family="'Inter', sans-serif" font-weight="800" font-size="34" letter-spacing="1.5" fill="#1f2c33">SINGARAJA</text>
-                  <text x="135" y="102" font-family="'Inter', sans-serif" font-weight="700" font-size="31" letter-spacing="2" fill="#1f2c33">SOCCER FIELD</text>
-                </svg>
+              <div class="w-24 h-24 flex items-center justify-end flex-shrink-0" id="prevInvLogoContainer">
+                <img src="icon-192.png" alt="Logo Singaraja Soccerfield" class="w-full h-full object-contain drop-shadow-sm">
               </div>
             </div>
 
@@ -2437,16 +2425,8 @@
         <p style="font-size: 10.5px; color: #4b5563; margin: 2px 0;">Gg. Pulau Dewata, Pemaron, Kec. Buleleng, Kab. Buleleng, Bali</p>
       </div>
       <!-- LOGO RESMI SINGARAJA SOCCER FIELD (A4 PRINT) -->
-      <div style="width: 175px; height: auto; display: flex; align-items: center; justify-content: flex-end;">
-        <svg viewBox="0 0 430 140" style="width: 100%; height: auto;" xmlns="http://www.w3.org/2000/svg">
-          <!-- Monogram Hexagon Double S -->
-          <g fill="#1f2c33">
-            <polygon points="56,6 10,32 10,48 56,22 102,48 102,74 88,66 88,56 56,38 24,56 24,84 56,102 70,94 70,80 56,88 38,78 38,64 56,54 74,64 74,104 56,114 24,96 10,104 10,108 56,134 102,108 102,92 56,118 10,92 10,66 24,74 24,84 56,102 88,84 88,56 56,38 42,46 42,60 56,52 74,62 74,76 56,86 38,76 38,36 56,26 88,44 102,36" />
-          </g>
-          <!-- Teks Branding Singaraja Soccer Field -->
-          <text x="135" y="58" font-family="'Inter', sans-serif" font-weight="800" font-size="34" letter-spacing="1.5" fill="#1f2c33">SINGARAJA</text>
-          <text x="135" y="102" font-family="'Inter', sans-serif" font-weight="700" font-size="31" letter-spacing="2" fill="#1f2c33">SOCCER FIELD</text>
-        </svg>
+      <div style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: flex-end;">
+        <img src="icon-192.png" alt="Logo Singaraja Soccerfield" style="width: 100%; height: 100%; object-fit: contain;">
       </div>
     </div>
 
@@ -7190,7 +7170,33 @@ Salam Olahraga & Fairplay!`;
       openModal('userModal');
     }
 
-    function saveUserData() {
+    function renameCashierReferences(oldName, newName) {
+      const oldNormalized = String(oldName || '').trim().toLocaleLowerCase('id');
+      const newCleanName = String(newName || '').trim();
+      if (!oldNormalized || !newCleanName || oldNormalized === newCleanName.toLocaleLowerCase('id')) return 0;
+
+      let updatedCount = 0;
+      const updateMatchingNames = (records, field) => {
+        if (!Array.isArray(records)) return;
+        records.forEach(record => {
+          if (!record || typeof record[field] !== 'string') return;
+          if (record[field].trim().toLocaleLowerCase('id') === oldNormalized) {
+            record[field] = newCleanName;
+            updatedCount++;
+          }
+        });
+      };
+
+      updateMatchingNames(transactions, 'cashier');
+      updateMatchingNames(bons, 'cashier');
+      updateMatchingNames(expenses, 'recordedBy');
+      updateMatchingNames(closings, 'cashierName');
+      updateMatchingNames(attendance, 'employeeName');
+      updateMatchingNames(employees, 'name');
+      return updatedCount;
+    }
+
+    async function saveUserData() {
       const id = document.getElementById('usrEditId')?.value;
       const name = document.getElementById('usrFullName')?.value.trim();
       const username = document.getElementById('usrUsername')?.value.trim().toLowerCase();
@@ -7202,21 +7208,54 @@ Salam Olahraga & Fairplay!`;
         return;
       }
 
+      const usernameExists = users.some(u => u && u.id !== id && String(u.username || '').toLowerCase() === username);
+      if (usernameExists) {
+        showToast('Username sudah digunakan!', 'error');
+        return;
+      }
+
+      let renamedCashier = false;
+      let oldName = '';
+      let oldRole = '';
       if (id) {
         const u = users.find(item => item.id === id);
-        if (u) {
-          u.name = name;
-          u.username = username;
-          u.password = password;
-          u.role = role;
-        }
-      } else {
-        const exists = users.some(u => u.username === username);
-        if (exists) {
-          showToast('Username sudah digunakan!', 'error');
+        if (!u) {
+          showToast('Akun pengguna tidak ditemukan. Muat ulang data lalu coba kembali.', 'error');
           return;
         }
 
+        oldName = String(u.name || '').trim();
+        oldRole = u.role;
+        renamedCashier = oldName !== name && (oldRole === 'Kasir' || role === 'Kasir');
+
+        // Ambil arsip multi-tahun terlebih dahulu agar riwayat lama di cloud ikut diperbarui.
+        if (renamedCashier && typeof window.pullAllMultiYearPartitions === 'function') {
+          await window.pullAllMultiYearPartitions(false);
+        }
+
+        u.name = name;
+        u.username = username;
+        u.password = password;
+        u.role = role;
+
+        if (renamedCashier) {
+          renameCashierReferences(oldName, name);
+          // Simpan setiap koleksi yang memuat nama kasir ke penyimpanan lokal/IndexedDB.
+          setStored(KEY_TRANSACTIONS, transactions);
+          setStored(KEY_BONS, bons);
+          setStored(KEY_EXPENSES, expenses);
+          setStored(KEY_CLOSINGS, closings);
+          setStored(KEY_ATTENDANCE, attendance);
+          setStored(KEY_EMPLOYEES, employees);
+        }
+
+        // Perbarui sesi jika admin sedang mengubah akunnya sendiri, termasuk nama dan role.
+        if (currentUser && currentUser.id === id) {
+          currentUser = { ...currentUser, name, username, role };
+          try { localStorage.setItem(KEY_AUTH_SESSION, JSON.stringify(currentUser)); } catch (e) {}
+          applyRolePermissions();
+        }
+      } else {
         users.push({
           id: 'USR-' + Date.now().toString().slice(-4),
           name: name,
@@ -7227,9 +7266,25 @@ Salam Olahraga & Fairplay!`;
       }
 
       setStored(KEY_USERS, users);
+      // Kirim perubahan user dan semua riwayat terkait ke cloud serta partisi tahunan.
+      if (renamedCashier && typeof window.immediateCloudSync === 'function') {
+        await window.immediateCloudSync();
+      }
+
       closeModal('userModal');
       renderUsersTable();
-      showToast('Akun pengguna berhasil disimpan!', 'success');
+      renderDashboard();
+      renderFilteredSalesReport();
+      renderBonTable();
+      renderExpenseTable();
+      renderAttendancePage();
+      renderClosingHistory();
+      if (currentUser && currentUser.id === id && currentUser.role === 'Kasir') {
+        switchTab('dashboard');
+      }
+      showToast(renamedCashier
+        ? `Akun disimpan. Nama kasir diperbarui pada semua riwayat lokal dan database (${oldName} → ${name}).`
+        : 'Akun pengguna berhasil disimpan!', 'success');
     }
 
     function deleteUser(id) {
