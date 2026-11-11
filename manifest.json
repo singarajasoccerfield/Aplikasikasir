@@ -45,7 +45,7 @@
   "screenshots": [
     {
       "src": "./screenshot-mobile.png",
-      "sizes": "720x1280",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Kasir POS & Operasional Mobile Singaraja Soccerfield"
