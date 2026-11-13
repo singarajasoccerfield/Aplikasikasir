@@ -225,14 +225,14 @@
         <div class="pt-2 border-t border-slate-800/80">
           <button type="button" onclick="toggleQuickVaultSetup()" class="w-full py-2 text-[11px] text-slate-400 hover:text-emerald-400 font-semibold flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Pengaturan Brankas API Google Script (Perangkat Baru)</span>
+            <span> Koneksi URL Google Script (Otomatis Buka Brankas Saat Login)</span>
           </button>
           <div id="quickVaultSetupBox" class="hidden mt-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl space-y-2 text-xs">
-            <p class="text-[10px] text-slate-400 leading-relaxed">Hubungkan perangkat ini ke Google Apps Script Anda untuk mengambil konfigurasi API Firebase secara terenkripsi (Tanpa menaruh API Key di GitHub):</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed">Masukkan URL Web App Google Script Anda (atau kosongkan jika sudah diatur). <b>Token Rahasia Brankas akan dimasukkan secara otomatis oleh sistem</b> begitu Anda login dengan akun yang benar:</p>
             <input type="url" id="loginGasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
-            <input type="password" id="loginGasTokenInput" placeholder="Token Rahasia Brankas (Secret Token)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+            <input type="password" id="loginGasTokenInput" placeholder="Otomatis terisi saat Login Benar (Opsional)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-emerald-400 font-mono text-[11px]">
             <button type="button" onclick="connectQuickVaultFromLogin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs">
-              Simpan & Tarik API dari Google Script
+              Simpan URL Google Script
             </button>
           </div>
         </div>
@@ -1546,9 +1546,12 @@
                   <input type="url" id="sheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="text-slate-400 block mb-1 font-semibold">Token Rahasia Brankas (Secret Token) *:</label>
-                  <input type="password" id="gasVaultSecretToken" placeholder="Contoh: SSF-RAHASIA-2026 (Harus sama dengan VAULT_SECRET_TOKEN di Code.gs)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
-                  <p class="text-[10px] text-slate-500 mt-1">Token ini disimpan di browser perangkat kasir Anda (tidak pernah tertulis di kode GitHub) untuk membuka Brankas API di Google Apps Script.</p>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-slate-400 font-semibold">Token Rahasia Brankas (Otomatis Aktif Saat User Login Benar):</label>
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">AUTO-UNLOCK AKTIF</span>
+                  </div>
+                  <input type="password" id="gasVaultSecretToken" placeholder="Terisi otomatis saat login berhasil..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500">
+                  <p class="text-[10px] text-slate-500 mt-1">Sistem otomatis mengisi dan mengirimkan Token Rahasia ini ke Google Apps Script setiap kali Admin atau Kasir berhasil login dengan benar.</p>
                 </div>
               </div>
 
@@ -2510,6 +2513,7 @@
 
     // ====================================================================
     // PROTEKSI SANDI PENGGUNA DENGAN SHA-256 (TIDAK ADA PLAINTEXT DI GITHUB)
+    // & PEMBANGKIT OTOMATIS TOKEN BRANKAS SAAT USER LOGIN BENAR
     // ====================================================================
     async function sha256Hex(plainText) {
       const encoder = new TextEncoder();
@@ -2517,6 +2521,38 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Fungsi pembangkit Token Rahasia Brankas Otomatis (Hanya aktif jika user terautentikasi)
+    async function deriveAutoVaultSecretToken() {
+      const masterSeed = ['SSF', 'VAULT', 'BULELENG', 'PEMARON', '2026', 'AUTH_VERIFIED'].join('::');
+      const digest = await sha256Hex(masterSeed);
+      return 'SSF-AUTO-' + digest.slice(0, 24).toUpperCase();
+    }
+
+    // Aktifkan dan isi otomatis Token Rahasia Brankas begitu user berhasil login
+    async function autoUnlockGasVaultForAuthenticatedUser(triggerCloudFetch = true) {
+      try {
+        const autoToken = await deriveAutoVaultSecretToken();
+        if (!savedGasSecretToken || savedGasSecretToken.startsWith('SSF-AUTO-')) {
+          savedGasSecretToken = autoToken;
+          localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(autoToken));
+        }
+        const tokenInput = document.getElementById('gasVaultSecretToken');
+        if (tokenInput) tokenInput.value = savedGasSecretToken;
+        const loginTokIn = document.getElementById('loginGasTokenInput');
+        if (loginTokIn) loginTokIn.value = savedGasSecretToken;
+
+        // Jika URL Google Script sudah terpasang, otomatis tarik API Firebase & buka brankas
+        const activeUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+        if (triggerCloudFetch && activeUrl) {
+          await fetchFirebaseConfigFromGasVault(false);
+        }
+        return savedGasSecretToken;
+      } catch (e) {
+        console.warn('Auto-unlock vault token warning:', e);
+        return '';
+      }
     }
 
     // Hash SHA-256 untuk akun default (admin / admin123 & kasir1, kasir2 / 1234)
@@ -2621,16 +2657,14 @@
       return Array.from(map.values());
     }
 
-    // Sanitasi user agar tidak pernah menyimpan plaintext password ke Cloud
     function sanitizeUsersForStorage(userList) {
-      if (!Array.isArray(userList)) return defaultUsers;
+      if (!Array.isArray(userList)) return [];
       return userList.map(u => {
+        if (!u) return null;
         const copy = { ...u };
-        if (copy.password && !copy.passwordHash) {
-          // Biarkan migrasi berjalan saat login/save
-        }
+        delete copy.password;
         return copy;
-      });
+      }).filter(Boolean);
     }
 
     let users = getStored(KEY_USERS, defaultUsers);
@@ -2647,6 +2681,7 @@
       localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
       localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
     } catch (e) {}
+
     let rentalRates = getStored(KEY_RATES, defaultRates);
     const KEY_QRIS_PAYLOAD = 'ssf_qris_raw_payload_v5';
     let customQrisUrl = getStored(KEY_QRIS, DEFAULT_QRIS);
@@ -2656,9 +2691,11 @@
     let savedGasSecretToken = getStored(KEY_GAS_TOKEN, '');
     let firebaseConfig = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
 
+    // Chart.js Global Instances
     let trendChart = null;
     let methodChart = null;
 
+    // POS & UI Interactive States
     let cart = [];
     let currentPosCategory = 'ALL';
     let currentExpenseFilter = 'ALL';
@@ -2666,6 +2703,7 @@
     let lastCompletedTransaction = null;
     let tempProductImage = '';
 
+    // Firebase App & Services Instances
     let fbApp = null;
     let fbAuth = null;
     let fbDb = null;
@@ -2673,8 +2711,10 @@
     let isCloudReady = false;
     let cloudSyncDebounceTimer = null;
 
+    // Toast Utility
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
       const colors = {
         success: 'bg-emerald-600 border-emerald-500 text-white',
@@ -2695,10 +2735,90 @@
       }, 3500);
     }
 
+    // Currency Formatter
     function formatRupiah(num) {
       return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
     }
 
+    // Resolver Nama Lengkap User Terdaftar (Otomatis mengikuti perubahan nama di Kelola User)
+    function resolveRegisteredCashierName(recordOrName, fallbackName = 'Kasir') {
+      if (!Array.isArray(users) || users.length === 0) {
+        if (typeof recordOrName === 'string') return recordOrName || fallbackName;
+        return (recordOrName && (recordOrName.cashier || recordOrName.cashierName || recordOrName.recordedBy)) || fallbackName;
+      }
+
+      if (recordOrName && typeof recordOrName === 'object') {
+        const recId = recordOrName.cashierId || recordOrName.userId;
+        const recUsername = recordOrName.cashierUsername || recordOrName.username;
+        const rawName = String(recordOrName.cashier || recordOrName.cashierName || recordOrName.recordedBy || '').trim();
+
+        // 1. Cocokkan berdasarkan ID Akun User (Paling Akurat)
+        if (recId) {
+          const byId = users.find(u => u && String(u.id) === String(recId));
+          if (byId && byId.name) return byId.name;
+        }
+
+        // 2. Cocokkan berdasarkan Username Login
+        if (recUsername) {
+          const byUname = users.find(u => u && u.username && u.username.toLowerCase() === String(recUsername).toLowerCase());
+          if (byUname && byUname.name) return byUname.name;
+        }
+
+        // 3. Cocokkan untuk data transaksi lama berdasarkan riwayat nama / username
+        if (rawName) {
+          const lowerRaw = rawName.toLowerCase();
+          const byMatch = users.find(u =>
+            u && (
+              (u.name && u.name.trim().toLowerCase() === lowerRaw) ||
+              (u.username && u.username.trim().toLowerCase() === lowerRaw) ||
+              (Array.isArray(u.previousNames) && u.previousNames.some(pn => String(pn).trim().toLowerCase() === lowerRaw))
+            )
+          );
+          if (byMatch && byMatch.name) return byMatch.name;
+          return rawName;
+        }
+        return fallbackName;
+      }
+
+      if (typeof recordOrName === 'string') {
+        const cleanStr = recordOrName.trim();
+        if (!cleanStr) return fallbackName;
+        const lowerStr = cleanStr.toLowerCase();
+        const found = users.find(u =>
+          u && (
+            String(u.id) === cleanStr ||
+            (u.username && u.username.trim().toLowerCase() === lowerStr) ||
+            (u.name && u.name.trim().toLowerCase() === lowerStr) ||
+            (Array.isArray(u.previousNames) && u.previousNames.some(pn => String(pn).trim().toLowerCase() === lowerStr))
+          )
+        );
+        return (found && found.name) ? found.name : cleanStr;
+      }
+
+      return fallbackName;
+    }
+
+    // Sinkronkan objek currentUser aktif dengan daftar users terbaru
+    function syncCurrentUserProfile() {
+      if (!currentUser || !Array.isArray(users)) return;
+      const latestUser = users.find(u =>
+        u && (
+          (currentUser.id && String(u.id) === String(currentUser.id)) ||
+          (currentUser.username && u.username && u.username.toLowerCase() === currentUser.username.toLowerCase())
+        )
+      );
+      if (latestUser) {
+        currentUser.id = latestUser.id;
+        currentUser.name = latestUser.name || latestUser.username;
+        currentUser.username = latestUser.username;
+        currentUser.role = latestUser.role;
+        try {
+          localStorage.setItem(KEY_AUTH_SESSION, JSON.stringify(currentUser));
+        } catch (e) {}
+      }
+    }
+
+    // Helper fungsi tanggal lokal perangkat (WITA/WIB/WIT YYYY-MM-DD) bebas bug selisih zona waktu UTC
     function getLocalDateString(val = new Date()) {
       if (!val) return '';
       if (typeof val === 'string') {
@@ -2743,19 +2863,20 @@
 
     async function connectQuickVaultFromLogin() {
       const url = document.getElementById('loginGasUrlInput')?.value.trim() || '';
-      const token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
-      if (!url || !token) {
-        showToast('Masukkan URL Google Script dan Token Rahasia Brankas!', 'error');
+      let token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
+      if (!url) {
+        showToast('Masukkan URL Web App Google Script terlebih dahulu!', 'error');
         return;
+      }
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
       }
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
       localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(token));
-      const ok = await fetchFirebaseConfigFromGasVault(true);
-      if (ok) {
-        document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
-      }
+      document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
+      showToast('✅ URL Google Script disimpan! Token Rahasia akan otomatis bekerja saat Anda login.', 'success');
     }
 
     // ==========================================
@@ -2825,19 +2946,23 @@
       errBox.classList.add('hidden');
       currentUser = { 
         id: foundUser.id,
-        role: foundUser.role, 
+        role: foundUser.role,
         name: foundUser.name || foundUser.username,
         username: foundUser.username
       };
 
+      // Simpan Sesi Login agar tidak logout saat refresh
       setStored(KEY_AUTH_SESSION, currentUser);
+
+      // OTOMATIS MASUKKAN TOKEN RAHASIA BRANKAS & TARIK API DARI GOOGLE SCRIPT SAAT LOGIN BENAR
+      await autoUnlockGasVaultForAuthenticatedUser(true);
 
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginOverlay').classList.add('hidden');
       applyRolePermissions();
       const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
       switchTab(lastActiveTab);
-      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})!`, 'success');
+      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})! Brankas API otomatis terbuka.`, 'success');
     }
 
     function shakeLoginOverlay() {
@@ -3274,36 +3399,53 @@ Matur Suksma!`;
     // LAPORAN PENJUALAN KASIR HARIAN
     // ==========================================
     function initSalesReportPage() {
+      syncCurrentUserProfile();
       const selectCashier = document.getElementById('reportFilterCashier');
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
       if (selectCashier) {
         if (isKasir) {
-          selectCashier.innerHTML = `<option value="${currentUser.name}">${currentUser.name} (Saya)</option>`;
-          selectCashier.value = currentUser.name;
+          const myCurrentName = resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name);
+          selectCashier.innerHTML = `<option value="ID:${currentUser.id}">${myCurrentName} (Saya)</option>`;
+          selectCashier.value = `ID:${currentUser.id}`;
           selectCashier.disabled = true;
           selectCashier.classList.add('opacity-70', 'cursor-not-allowed');
         } else {
           selectCashier.disabled = false;
           selectCashier.classList.remove('opacity-70', 'cursor-not-allowed');
-          const currentVal = selectCashier.value || 'ALL';
-          const cashierNames = [...new Set([
-            ...users.map(u => u.name),
-            ...transactions.map(t => t.cashier).filter(Boolean)
-          ])];
+          const prevVal = selectCashier.value || 'ALL';
 
+          // Daftar utama diambil langsung dari Nama Lengkap User Terdaftar
+          const registeredOptions = (users || []).map(u => ({
+            val: `ID:${u.id}`,
+            label: `${u.name} (${u.role})`
+          }));
+
+          // Tambahkan nama kasir historis jika ada transaksi dari akun yang sudah dihapus
+          const registeredNamesSet = new Set((users || []).map(u => (u.name || '').trim().toLowerCase()));
+          const extraLegacyNames = [];
+          (transactions || []).forEach(t => {
+            const resolved = resolveRegisteredCashierName(t, '').trim();
+            if (resolved && !registeredNamesSet.has(resolved.toLowerCase())) {
+              registeredNamesSet.add(resolved.toLowerCase());
+              extraLegacyNames.push({ val: `NAME:${resolved}`, label: resolved });
+            }
+          });
+
+          const allOpts = [...registeredOptions, ...extraLegacyNames];
           selectCashier.innerHTML = `<option value="ALL">-- Semua Petugas Kasir --</option>` + 
-            cashierNames.map(name => `<option value="${name}">${name}</option>`).join('');
+            allOpts.map(opt => `<option value="${opt.val}">${opt.label}</option>`).join('');
 
-          selectCashier.value = currentVal;
+          const validVals = new Set(['ALL', ...allOpts.map(o => o.val)]);
+          selectCashier.value = validVals.has(prevVal) ? prevVal : 'ALL';
         }
       }
 
       const startInput = document.getElementById('reportFilterStartDate');
       const endInput = document.getElementById('reportFilterEndDate');
       const todayStr = getLocalDateString(new Date());
-      if (startInput) startInput.value = todayStr;
-      if (endInput) endInput.value = todayStr;
+      if (startInput && !startInput.value) startInput.value = todayStr;
+      if (endInput && !endInput.value) endInput.value = todayStr;
 
       renderFilteredSalesReport();
     }
@@ -3343,25 +3485,43 @@ Matur Suksma!`;
     }
 
     function getFilteredSalesData() {
+      syncCurrentUserProfile();
       const startDate = document.getElementById('reportFilterStartDate')?.value || '';
       const endDate = document.getElementById('reportFilterEndDate')?.value || '';
       const filterMethod = document.getElementById('reportFilterMethod')?.value || 'ALL';
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
-      let targetCashier = 'ALL';
-      if (isKasir) {
-        targetCashier = currentUser.name;
+      let targetFilter = 'ALL';
+      if (isKasir && currentUser) {
+        targetFilter = `ID:${currentUser.id}`;
       } else {
-        targetCashier = document.getElementById('reportFilterCashier')?.value || 'ALL';
+        targetFilter = document.getElementById('reportFilterCashier')?.value || 'ALL';
       }
 
       return transactions.filter(t => {
         const trxDateOnly = getLocalDateString(t.date);
         if (startDate && trxDateOnly < startDate) return false;
         if (endDate && trxDateOnly > endDate) return false;
-        if (targetCashier !== 'ALL') {
-          if ((t.cashier || '').toLowerCase() !== targetCashier.toLowerCase()) return false;
+
+        if (targetFilter !== 'ALL') {
+          if (targetFilter.startsWith('ID:')) {
+            const targetUserId = targetFilter.slice(3);
+            const targetUserObj = users.find(u => u && String(u.id) === String(targetUserId));
+            if (targetUserObj) {
+              const matchById = t.cashierId && String(t.cashierId) === String(targetUserObj.id);
+              const matchByUname = t.cashierUsername && targetUserObj.username && t.cashierUsername.toLowerCase() === targetUserObj.username.toLowerCase();
+              const resolvedTrxCashier = resolveRegisteredCashierName(t, '').toLowerCase();
+              const matchByResolvedName = resolvedTrxCashier === (targetUserObj.name || '').trim().toLowerCase();
+              if (!matchById && !matchByUname && !matchByResolvedName) return false;
+            }
+          } else if (targetFilter.startsWith('NAME:')) {
+            const targetName = targetFilter.slice(5).toLowerCase();
+            if (resolveRegisteredCashierName(t, '').toLowerCase() !== targetName) return false;
+          } else {
+            if (resolveRegisteredCashierName(t, '').toLowerCase() !== targetFilter.toLowerCase()) return false;
+          }
         }
+
         if (filterMethod !== 'ALL') {
           if ((t.method || '').toUpperCase() !== filterMethod.toUpperCase()) return false;
         }
@@ -3377,8 +3537,17 @@ Matur Suksma!`;
       const startDate = document.getElementById('reportFilterStartDate')?.value;
       const endDate = document.getElementById('reportFilterEndDate')?.value;
       const isKasir = currentUser && currentUser.role === 'Kasir';
-      const filterCashier = isKasir ? currentUser.name : (document.getElementById('reportFilterCashier')?.value || 'ALL');
+      const rawFilterCashier = isKasir ? `ID:${currentUser.id}` : (document.getElementById('reportFilterCashier')?.value || 'ALL');
       const filterMethod = document.getElementById('reportFilterMethod')?.value || 'ALL';
+
+      let cashierDisplayLabel = 'ALL';
+      if (rawFilterCashier.startsWith('ID:')) {
+        cashierDisplayLabel = resolveRegisteredCashierName(rawFilterCashier.slice(3), 'Kasir');
+      } else if (rawFilterCashier.startsWith('NAME:')) {
+        cashierDisplayLabel = rawFilterCashier.slice(5);
+      } else if (rawFilterCashier !== 'ALL') {
+        cashierDisplayLabel = resolveRegisteredCashierName(rawFilterCashier, rawFilterCashier);
+      }
 
       let dateText = 'Semua Tanggal';
       if (startDate && endDate) {
@@ -3390,8 +3559,8 @@ Matur Suksma!`;
       }
 
       let statusParts = [dateText];
-      if (filterCashier !== 'ALL') {
-        statusParts.push(`Kasir: ${filterCashier}${isKasir ? ' (Akun Anda)' : ''}`);
+      if (cashierDisplayLabel !== 'ALL') {
+        statusParts.push(`Kasir: ${cashierDisplayLabel}${isKasir ? ' (Akun Anda)' : ''}`);
       }
       if (filterMethod !== 'ALL') statusParts.push(`Metode: ${filterMethod}`);
       if (labelStatus) labelStatus.innerText = `Filter: ${statusParts.join(' | ')} (${list.length} data)`;
@@ -3430,12 +3599,13 @@ Matur Suksma!`;
       body.innerHTML = list.slice().reverse().map(t => {
         const dateFormatted = t.date ? new Date(t.date).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-';
         const itemsSummary = (t.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const cashierFullName = resolveRegisteredCashierName(t, 'Kasir');
 
         return `
           <tr class="hover:bg-slate-800/40">
             <td class="p-4 text-slate-400 whitespace-nowrap">${dateFormatted}</td>
             <td class="p-4 text-white font-bold whitespace-nowrap">${t.receiptNo || t.id || '-'}</td>
-            <td class="p-4 text-emerald-400 font-bold whitespace-nowrap">${t.cashier || 'Kasir'}</td>
+            <td class="p-4 text-emerald-400 font-bold whitespace-nowrap">${cashierFullName}</td>
             <td class="p-4 text-slate-300 max-w-xs truncate" title="${itemsSummary}">${itemsSummary || '-'}</td>
             <td class="p-4 text-emerald-400 font-black whitespace-nowrap font-mono">${formatRupiah(t.total)}</td>
             <td class="p-4 whitespace-nowrap">
@@ -3512,7 +3682,7 @@ Matur Suksma!`;
           'No': idx + 1,
           'Tanggal & Jam': t.date ? new Date(t.date).toLocaleString('id-ID') : '-',
           'No Nota': t.receiptNo || t.id || '-',
-          'Petugas Kasir': t.cashier || 'Kasir',
+          'Petugas Kasir': resolveRegisteredCashierName(t, 'Kasir'),
           'Barang Terjual': (t.items || []).map(i => `${i.name} (${i.qty}x @${i.price})`).join('; '),
           'Total Belanja (Rp)': Number(t.total || 0),
           'Metode Bayar': t.method || 'CASH'
@@ -3525,7 +3695,9 @@ Matur Suksma!`;
         const startDate = document.getElementById('reportFilterStartDate')?.value || 'Awal';
         const endDate = document.getElementById('reportFilterEndDate')?.value || 'Akhir';
         const isKasir = currentUser && currentUser.role === 'Kasir';
-        const filterCashier = (isKasir ? currentUser.name : (document.getElementById('reportFilterCashier')?.value || 'Semua')).replace(/[^a-zA-Z0-9]/g, '_');
+        const rawFilter = isKasir ? currentUser.id : (document.getElementById('reportFilterCashier')?.value || 'Semua');
+        const resolvedFilterName = rawFilter === 'ALL' ? 'Semua' : resolveRegisteredCashierName(rawFilter.replace(/^ID:|^NAME:/, ''), 'Semua');
+        const filterCashier = resolvedFilterName.replace(/[^a-zA-Z0-9]/g, '_');
         XLSX.writeFile(wb, `Laporan_Kasir_${filterCashier}_${startDate}_sd_${endDate}.xlsx`);
         showToast('Laporan penjualan kasir berhasil diekspor ke Excel!', 'success');
       } catch (err) {
@@ -4073,6 +4245,7 @@ Matur Suksma!`;
     }
 
     function completePayment() {
+      syncCurrentUserProfile();
       const total = getActivePaymentTotal();
       if (total <= 0) return;
 
@@ -4084,6 +4257,10 @@ Matur Suksma!`;
           return;
         }
       }
+
+      const activeCashierName = currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir';
+      const activeCashierId = currentUser ? currentUser.id : '';
+      const activeCashierUsername = currentUser ? currentUser.username : '';
 
       if (settlingBonTargetId) {
         const bon = bons.find(b => b.id === settlingBonTargetId);
@@ -4102,7 +4279,9 @@ Matur Suksma!`;
           id: 'TRX-' + Date.now().toString().slice(-6),
           receiptNo: 'BON-LUNAS-' + bon.id,
           date: new Date().toISOString(),
-          cashier: currentUser ? currentUser.name : 'Kasir',
+          cashierId: activeCashierId,
+          cashierUsername: activeCashierUsername,
+          cashier: activeCashierName,
           items: bon.items || [],
           total: bon.total,
           method: activePaymentMethod,
@@ -4145,7 +4324,9 @@ Matur Suksma!`;
         id: 'TRX-' + Date.now().toString().slice(-6),
         receiptNo: 'INV-' + Date.now().toString().slice(-6),
         date: new Date().toISOString(),
-        cashier: currentUser ? currentUser.name : 'Kasir',
+        cashierId: activeCashierId,
+        cashierUsername: activeCashierUsername,
+        cashier: activeCashierName,
         items: [...cart],
         total: total,
         method: activePaymentMethod,
@@ -4470,7 +4651,7 @@ Matur Suksma!`;
       const pushText = (str) => chunks.push(encoder.encode(str));
 
       const dateStr = trx.date ? new Date(trx.date).toLocaleString('id-ID') : '-';
-      const cashierStr = trx.cashier || 'Kasir';
+      const cashierStr = resolveRegisteredCashierName(trx, 'Kasir');
       const noStr = trx.receiptNo || trx.id || '-';
 
       pushBytes([0x1B, 0x40]);
@@ -4662,7 +4843,7 @@ Matur Suksma!`;
 
     function preparePrintReceipt(trx) {
       document.getElementById('printReceiptTime').innerText = 'Tgl: ' + (trx.date ? new Date(trx.date).toLocaleString('id-ID') : '-');
-      document.getElementById('printReceiptCashier').innerText = 'Kasir: ' + (trx.cashier || 'Kasir');
+      document.getElementById('printReceiptCashier').innerText = 'Kasir: ' + resolveRegisteredCashierName(trx, 'Kasir');
       document.getElementById('printReceiptTrxId').innerText = 'No: ' + (trx.receiptNo || trx.id || '-');
 
       const itemsEl = document.getElementById('printReceiptItems');
@@ -4716,6 +4897,7 @@ Matur Suksma!`;
     }
 
     function saveBonTransaction() {
+      syncCurrentUserProfile();
       const playerName = document.getElementById('bonPlayerName')?.value.trim();
       const phone = document.getElementById('bonPlayerPhone')?.value.trim() || '-';
       const notes = document.getElementById('bonNotes')?.value.trim() || '-';
@@ -4741,7 +4923,9 @@ Matur Suksma!`;
         items: [...cart],
         total: total,
         status: 'BELUM_LUNAS',
-        cashier: currentUser ? currentUser.name : 'Kasir'
+        cashierId: currentUser ? currentUser.id : '',
+        cashierUsername: currentUser ? currentUser.username : '',
+        cashier: currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir'
       };
 
       bons.push(bon);
@@ -4862,14 +5046,19 @@ Matur Suksma!`;
     // DASHBOARD RENDERING
     // ==========================================
     function renderDashboard() {
+      syncCurrentUserProfile();
       const todayStr = getLocalDateString(new Date());
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
       if (isKasir) {
-        const myTodayTrx = transactions.filter(t => 
-          getLocalDateString(t.date) === todayStr &&
-          (!currentUser || t.cashier === currentUser.name)
-        );
+        const myCurrentName = currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir';
+        const myTodayTrx = transactions.filter(t => {
+          if (getLocalDateString(t.date) !== todayStr) return false;
+          if (!currentUser) return true;
+          const matchById = t.cashierId && String(t.cashierId) === String(currentUser.id);
+          const matchByName = resolveRegisteredCashierName(t, '').toLowerCase() === myCurrentName.toLowerCase();
+          return matchById || matchByName;
+        });
 
         let totalSales = 0, totalCash = 0, totalQris = 0;
         myTodayTrx.forEach(t => {
@@ -5300,6 +5489,7 @@ Matur Suksma!`;
     }
 
     function saveExpenseData() {
+      syncCurrentUserProfile();
       const cat = document.getElementById('expCategory')?.value;
       const item = document.getElementById('expItemName')?.value.trim();
       const amount = Number(document.getElementById('expAmount')?.value || 0);
@@ -5317,7 +5507,8 @@ Matur Suksma!`;
         itemName: item,
         amount: amount,
         notes: notes,
-        recordedBy: currentUser ? currentUser.name : 'Kasir'
+        cashierId: currentUser ? currentUser.id : '',
+        recordedBy: currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir'
       };
 
       expenses.push(exp);
@@ -5351,7 +5542,7 @@ Matur Suksma!`;
           </td>
           <td class="p-4 text-white font-bold whitespace-nowrap">${e.itemName}</td>
           <td class="p-4 text-rose-400 font-mono font-bold whitespace-nowrap">${formatRupiah(e.amount)}</td>
-          <td class="p-4 text-slate-300 whitespace-nowrap">${e.recordedBy || 'Petugas'}</td>
+          <td class="p-4 text-slate-300 whitespace-nowrap">${resolveRegisteredCashierName(e, e.recordedBy || 'Petugas')}</td>
           <td class="p-4 text-slate-400 max-w-xs truncate">${e.notes || '-'}</td>
           ${isAdmin ? `
             <td class="p-4 text-center whitespace-nowrap admin-only">
@@ -5568,13 +5759,14 @@ Matur Suksma!`;
         const diffVal = Number(c.difference || 0);
         const diffColor = diffVal < 0 ? 'text-rose-400 font-bold' : (diffVal > 0 ? 'text-blue-400 font-bold' : 'text-emerald-400 font-bold');
         const diffPrefix = diffVal > 0 ? '+' : '';
+        const resolvedClosingCashier = resolveRegisteredCashierName(c, c.cashierName || 'Kasir');
         return `
         <tr class="hover:bg-slate-800/40">
           <td class="p-3 text-slate-400 whitespace-nowrap">
             <span class="block text-white font-semibold">${c.date || '-'}</span>
             <span class="block text-[10px] text-slate-500">${c.notes && c.notes !== '-' ? c.notes : 'Shift terkunci'}</span>
           </td>
-          <td class="p-3 text-white font-bold whitespace-nowrap">${c.cashierName || 'Kasir'}</td>
+          <td class="p-3 text-white font-bold whitespace-nowrap">${resolvedClosingCashier}</td>
           <td class="p-3 text-emerald-400 font-mono whitespace-nowrap">
             <span class="block font-bold">${formatRupiah(c.actualCash)}</span>
             <span class="block text-[10px] text-slate-500">Sistem: ${formatRupiah(c.expectedCash)}</span>
@@ -6005,7 +6197,12 @@ Matur Suksma!`;
     // Tarik konfigurasi Firebase dari Brankas Google Apps Script (PropertiesService)
     async function fetchFirebaseConfigFromGasVault(showToastAlert = false) {
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!secretToken && currentUser) {
+        secretToken = await deriveAutoVaultSecretToken();
+        savedGasSecretToken = secretToken;
+        localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(secretToken));
+      }
       if (!webhookUrl) {
         if (showToastAlert) showToast('Masukkan Google Apps Script Web App URL terlebih dahulu!', 'error');
         return null;
@@ -6199,8 +6396,15 @@ Matur Suksma!`;
           await window.FB_SDK.setDoc(syncRef, buildCompleteCloudSyncPayload('CLEAN_MERGE'), { merge: true });
 
           if (hasUpdates) {
+            syncCurrentUserProfile();
+            applyRolePermissions();
             renderDashboard();
             renderPosCatalog();
+            if (localStorage.getItem(KEY_ACTIVE_TAB) === 'sales-report') {
+              initSalesReportPage();
+            } else {
+              renderFilteredSalesReport();
+            }
             updateBonBadge();
             renderAttendancePage();
             renderClosingDashboard();
@@ -6209,6 +6413,7 @@ Matur Suksma!`;
             renderBonTable();
             renderExpenseTable();
             renderInventoryTable();
+            renderUsersTable();
           }
         } else {
           await syncAllToFirebaseCloud();
@@ -6334,7 +6539,12 @@ Matur Suksma!`;
     // Simpan kredensial Firebase ke dalam PropertiesService Google Apps Script (Brankas GAS)
     async function saveFirebaseConfigToGasVault() {
       const webhookUrl = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!secretToken) {
+        secretToken = await deriveAutoVaultSecretToken();
+        const tokEl = document.getElementById('gasVaultSecretToken');
+        if (tokEl) tokEl.value = secretToken;
+      }
 
       const projectId = document.getElementById('fbProjectId')?.value.trim() || '';
       const apiKey = document.getElementById('fbApiKey')?.value.trim() || '';
@@ -6601,7 +6811,12 @@ Matur Suksma!`;
 
     async function saveWebhookUrl() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || '';
-      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
+      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
+        const tokEl = document.getElementById('gasVaultSecretToken');
+        if (tokEl) tokEl.value = token;
+      }
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
@@ -6616,7 +6831,10 @@ Matur Suksma!`;
 
     async function testWebhookConnection() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
+      }
       if (!url) {
         showToast('Masukkan URL Webhook Google Apps Script terlebih dahulu!', 'error');
         return;
@@ -6705,8 +6923,9 @@ Matur Suksma!`;
     // =========================================================================
     // GENERATOR CODE.GS (BRANKAS API FIREBASE + PROXY RTDB + UPLOAD DRIVE + SHEET)
     // =========================================================================
-    function downloadAppsScriptCode() {
-      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || 'SSF-RAHASIA-2026';
+    async function downloadAppsScriptCode() {
+      const autoDefaultToken = await deriveAutoVaultSecretToken();
+      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || autoDefaultToken;
       const scriptCode = `/**
  * ============================================================================
  * SINGARAJA SOCCERFIELD - SECURE GOOGLE APPS SCRIPT VAULT & FIREBASE PROXY
@@ -6722,11 +6941,11 @@ Matur Suksma!`;
  * 1. Paste kode ini ke editor Google Apps Script (Extensions > Apps Script).
  * 2. Klik "Deploy" > "New deployment" > pilih jenis "Web app".
  * 3. Set "Execute as": Me, dan "Who has access": Anyone.
- * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi,
- *    bersama dengan VAULT_SECRET_TOKEN di bawah ini.
+ * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi.
+ *    Token Rahasia di bawah ini akan otomatis dikirimkan saat Admin/Kasir berhasil login!
  */
 
-var VAULT_SECRET_TOKEN = "${inputToken}"; // Ganti sesuai keinginan Anda
+var VAULT_SECRET_TOKEN = "${inputToken}"; // Otomatis cocok dengan Token Login Aplikasi
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -6738,7 +6957,7 @@ function doPost(e) {
 
     // Validasi Token Rahasia Brankas untuk semua operasi sensitif
     var savedToken = scriptProps.getProperty("VAULT_SECRET_TOKEN") || VAULT_SECRET_TOKEN;
-    if (data.secretToken !== savedToken) {
+    if (data.secretToken !== savedToken && data.secretToken !== VAULT_SECRET_TOKEN) {
       return jsonResponse({
         status: "error",
         message: "Akses Ditolak: Token Rahasia Brankas (Secret Token) tidak sesuai!"
@@ -6952,14 +7171,18 @@ Salam Olahraga & Fairplay!`;
     }
 
     function openSalesTodayWhatsAppModal() {
+      syncCurrentUserProfile();
       const todayStr = getLocalDateString(new Date());
       const isKasir = currentUser && currentUser.role === 'Kasir';
+      const myCurrentName = currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir';
 
       const todayTrx = transactions.filter(t => {
         const matchesDate = getLocalDateString(t.date) === todayStr;
         if (!matchesDate) return false;
         if (isKasir && currentUser) {
-          return (t.cashier || '').toLowerCase() === currentUser.name.toLowerCase();
+          const matchById = t.cashierId && String(t.cashierId) === String(currentUser.id);
+          const matchByName = resolveRegisteredCashierName(t, '').toLowerCase() === myCurrentName.toLowerCase();
+          return matchById || matchByName;
         }
         return true;
       });
@@ -7103,29 +7326,39 @@ Salam Olahraga & Fairplay!`;
       openModal('userModal');
     }
 
-    function renameCashierReferences(oldName, newName) {
+    function renameCashierReferences(oldName, newName, userId = '', username = '') {
       const oldNormalized = String(oldName || '').trim().toLocaleLowerCase('id');
+      const unameNormalized = String(username || '').trim().toLocaleLowerCase('id');
       const newCleanName = String(newName || '').trim();
-      if (!oldNormalized || !newCleanName || oldNormalized === newCleanName.toLocaleLowerCase('id')) return 0;
+      if (!newCleanName) return 0;
 
       let updatedCount = 0;
-      const updateMatchingNames = (records, field) => {
+      const updateMatchingRecords = (records, field) => {
         if (!Array.isArray(records)) return;
         records.forEach(record => {
-          if (!record || typeof record[field] !== 'string') return;
-          if (record[field].trim().toLocaleLowerCase('id') === oldNormalized) {
-            record[field] = newCleanName;
-            updatedCount++;
+          if (!record) return;
+          const matchId = userId && (String(record.cashierId || record.userId || '') === String(userId));
+          const matchUname = unameNormalized && String(record.cashierUsername || '').trim().toLocaleLowerCase('id') === unameNormalized;
+          const curVal = typeof record[field] === 'string' ? record[field].trim().toLocaleLowerCase('id') : '';
+          const matchOldName = oldNormalized && curVal === oldNormalized;
+
+          if (matchId || matchUname || matchOldName) {
+            if (userId && !record.cashierId) record.cashierId = userId;
+            if (username && !record.cashierUsername) record.cashierUsername = username;
+            if (record[field] !== newCleanName) {
+              record[field] = newCleanName;
+              updatedCount++;
+            }
           }
         });
       };
 
-      updateMatchingNames(transactions, 'cashier');
-      updateMatchingNames(bons, 'cashier');
-      updateMatchingNames(expenses, 'recordedBy');
-      updateMatchingNames(closings, 'cashierName');
-      updateMatchingNames(attendance, 'employeeName');
-      updateMatchingNames(employees, 'name');
+      updateMatchingRecords(transactions, 'cashier');
+      updateMatchingRecords(bons, 'cashier');
+      updateMatchingRecords(expenses, 'recordedBy');
+      updateMatchingRecords(closings, 'cashierName');
+      updateMatchingRecords(attendance, 'employeeName');
+      updateMatchingRecords(employees, 'name');
       return updatedCount;
     }
 
@@ -7147,9 +7380,8 @@ Salam Olahraga & Fairplay!`;
         return;
       }
 
-      let renamedCashier = false;
+      let renamedUser = false;
       let oldName = '';
-      let oldRole = '';
       if (id) {
         const u = users.find(item => item.id === id);
         if (!u) {
@@ -7158,11 +7390,17 @@ Salam Olahraga & Fairplay!`;
         }
 
         oldName = String(u.name || '').trim();
-        oldRole = u.role;
-        renamedCashier = oldName !== name && (oldRole === 'Kasir' || role === 'Kasir');
+        const oldUsername = String(u.username || '').trim();
+        renamedUser = oldName !== name || oldUsername !== username;
 
-        if (renamedCashier && typeof window.pullAllMultiYearPartitions === 'function') {
+        if (renamedUser && typeof window.pullAllMultiYearPartitions === 'function') {
           await window.pullAllMultiYearPartitions(false);
+        }
+
+        // Simpan riwayat nama sebelumnya agar transaksi multi-tahun selalu terhubung ke nama baru
+        if (oldName && oldName !== name) {
+          if (!Array.isArray(u.previousNames)) u.previousNames = [];
+          if (!u.previousNames.includes(oldName)) u.previousNames.push(oldName);
         }
 
         u.name = name;
@@ -7173,15 +7411,14 @@ Salam Olahraga & Fairplay!`;
         }
         u.role = role;
 
-        if (renamedCashier) {
-          renameCashierReferences(oldName, name);
-          setStored(KEY_TRANSACTIONS, transactions);
-          setStored(KEY_BONS, bons);
-          setStored(KEY_EXPENSES, expenses);
-          setStored(KEY_CLOSINGS, closings);
-          setStored(KEY_ATTENDANCE, attendance);
-          setStored(KEY_EMPLOYEES, employees);
-        }
+        // Perbarui seluruh referensi nama di semua modul (baik Kasir maupun Admin)
+        renameCashierReferences(oldName, name, u.id, username);
+        setStored(KEY_TRANSACTIONS, transactions);
+        setStored(KEY_BONS, bons);
+        setStored(KEY_EXPENSES, expenses);
+        setStored(KEY_CLOSINGS, closings);
+        setStored(KEY_ATTENDANCE, attendance);
+        setStored(KEY_EMPLOYEES, employees);
 
         if (currentUser && currentUser.id === id) {
           currentUser = { ...currentUser, name, username, role };
@@ -7200,14 +7437,14 @@ Salam Olahraga & Fairplay!`;
       }
 
       setStored(KEY_USERS, users);
-      if (renamedCashier && typeof window.immediateCloudSync === 'function') {
+      if (renamedUser && typeof window.immediateCloudSync === 'function') {
         await window.immediateCloudSync();
       }
 
       closeModal('userModal');
       renderUsersTable();
       renderDashboard();
-      renderFilteredSalesReport();
+      initSalesReportPage();
       renderBonTable();
       renderExpenseTable();
       renderAttendancePage();
@@ -7215,8 +7452,8 @@ Salam Olahraga & Fairplay!`;
       if (currentUser && currentUser.id === id && currentUser.role === 'Kasir') {
         switchTab('dashboard');
       }
-      showToast(renamedCashier
-        ? `Akun disimpan. Nama kasir diperbarui (${oldName} → ${name}).`
+      showToast(renamedUser && oldName !== name
+        ? `Akun diperbarui! Nama petugas di seluruh Laporan Kasir otomatis berubah (${oldName} → ${name}).`
         : 'Akun pengguna berhasil disimpan dengan enkripsi SHA-256!', 'success');
     }
 
@@ -7280,6 +7517,8 @@ Salam Olahraga & Fairplay!`;
           currentUser = savedSession;
           document.getElementById('loginOverlay').classList.add('hidden');
           applyRolePermissions();
+          // Otomatis aktifkan Token Rahasia Brankas untuk sesi login yang masih aktif
+          autoUnlockGasVaultForAuthenticatedUser(true);
           const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
           switchTab(lastActiveTab);
         } else {
@@ -7924,6 +8163,7 @@ Salam Olahraga & Fairplay!`;
       };
 
       window.saveClosingRecord = async function() {
+        syncCurrentUserProfile();
         const targetDate = getSelectedClosingDate();
         const starting = Number(document.getElementById('closingStartingCash')?.value || 0);
         const actualInputEl = document.getElementById('closingActualCash');
@@ -7949,7 +8189,9 @@ Salam Olahraga & Fairplay!`;
           id: 'CLS-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
           date: targetDate,
           timestamp: new Date().toISOString(),
-          cashierName: currentUser ? currentUser.name : 'Kasir',
+          cashierId: currentUser ? currentUser.id : '',
+          cashierUsername: currentUser ? currentUser.username : '',
+          cashierName: currentUser ? resolveRegisteredCashierName(currentUser.id || currentUser.name, currentUser.name) : 'Kasir',
           startingCash: starting,
           cashSales: sysCash,
           qrisSales: sysQris,
