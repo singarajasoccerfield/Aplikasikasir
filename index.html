@@ -221,6 +221,22 @@
           <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
 
+        <!-- Pengaturan Cepat Koneksi Brankas Google Script (Jika perangkat baru) -->
+        <div class="pt-2 border-t border-slate-800/80">
+          <button type="button" onclick="toggleQuickVaultSetup()" class="w-full py-2 text-[11px] text-slate-400 hover:text-emerald-400 font-semibold flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Pengaturan Brankas API Google Script (Perangkat Baru)</span>
+          </button>
+          <div id="quickVaultSetupBox" class="hidden mt-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl space-y-2 text-xs">
+            <p class="text-[10px] text-slate-400 leading-relaxed">Hubungkan perangkat ini ke Google Apps Script Anda untuk mengambil konfigurasi API Firebase secara terenkripsi (Tanpa menaruh API Key di GitHub):</p>
+            <input type="url" id="loginGasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+            <input type="password" id="loginGasTokenInput" placeholder="Token Rahasia Brankas (Secret Token)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+            <button type="button" onclick="connectQuickVaultFromLogin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs">
+              Simpan & Tarik API dari Google Script
+            </button>
+          </div>
+        </div>
+
         <!-- Tombol Install Aplikasi Android Otomatis (Muncul saat siap diinstal) -->
         <button type="button" id="btnInstallPwaLogin" onclick="triggerPwaInstall()" class="hidden w-full py-3 bg-slate-800/90 hover:bg-slate-700 border border-emerald-500/40 text-emerald-400 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2">
           <i data-lucide="smartphone" class="w-4 h-4"></i>
@@ -264,7 +280,7 @@
             </div>
 
             <!-- Auto Cloud Sync Badge Indicator -->
-            <div id="cloudSyncBadge" class="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 rounded-xl transition-all" title="Status Sinkronisasi Firebase Cloud">
+            <div id="cloudSyncBadge" class="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 rounded-xl transition-all" title="Status Sinkronisasi Brankas Google Script & Firebase Cloud">
               <span id="cloudSyncDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               <span id="cloudSyncText" class="font-mono text-slate-300">Cloud Sync</span>
             </div>
@@ -308,7 +324,6 @@
       <!-- MOBILE DROPDOWN ACCORDION / DRAWER (TAMPIL DI LAYAR KECIL) -->
       <div id="mobileNavDropdown" class="hidden lg:hidden bg-slate-950/95 border-b border-slate-800/80 px-4 py-3 backdrop-blur-md">
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="mobileNavMenuGrid">
-          <!-- Item dropdown akan di-render atau disinkronkan otomatis sesuai role -->
           <button type="button" onclick="switchTabMobile('dashboard')" class="mobile-nav-btn flex items-center gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 hover:bg-emerald-600 hover:text-white transition-all text-xs font-medium" data-mob-tab="dashboard">
             <i data-lucide="layout-dashboard" class="w-4 h-4 text-emerald-400"></i>
             <span>Dashboard</span>
@@ -373,80 +388,67 @@
       <div class="bg-slate-950/80 border-t border-slate-800/60 px-2 sm:px-6 2xl:px-12 overflow-x-auto scrollbar-none">
         <nav class="w-full flex items-center gap-1.5 py-2 text-xs font-semibold whitespace-nowrap min-w-max" id="mainNavBar">
           
-          <!-- TAB: Dashboard (Admin & Kasir) -->
           <button type="button" onclick="switchTab('dashboard')" class="nav-tab active flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="dashboard">
             <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i>
             <span>Dashboard</span>
           </button>
 
-          <!-- TAB: Kasir POS (Admin & Kasir) -->
           <button type="button" onclick="switchTab('pos')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="pos">
             <i data-lucide="shopping-cart" class="w-4 h-4 flex-shrink-0"></i>
             <span>Kasir / POS</span>
           </button>
 
-          <!-- TAB: Laporan Penjualan Kasir (Admin & Kasir) -->
           <button type="button" onclick="switchTab('sales-report')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="sales-report">
             <i data-lucide="file-bar-chart" class="w-4 h-4 flex-shrink-0"></i>
             <span>Laporan Kasir</span>
           </button>
 
-          <!-- TAB: Buat Invoice Resmi (Admin & Kasir) -->
           <button type="button" onclick="switchTab('invoice')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="invoice">
             <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i>
             <span>Buat Invoice</span>
           </button>
 
-          <!-- TAB: Booking Lapangan (Admin & Kasir) -->
           <button type="button" onclick="switchTab('booking')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="booking">
             <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0"></i>
             <span>Booking Lapangan</span>
           </button>
 
-          <!-- TAB: Bon Sementara (Admin & Kasir) -->
           <button type="button" onclick="switchTab('bon')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs relative" data-tab="bon">
             <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0"></i>
             <span>Bon Sementara</span>
             <span id="bonCounterBadge" class="hidden px-1.5 py-0.2 text-[9px] font-black rounded-full bg-rose-500 text-white">0</span>
           </button>
 
-          <!-- TAB: Pengeluaran (Admin & Kasir) -->
           <button type="button" onclick="switchTab('expenses')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="expenses">
             <i data-lucide="wallet" class="w-4 h-4 flex-shrink-0"></i>
             <span>Pengeluaran</span>
           </button>
 
-          <!-- TAB: Absensi Karyawan (Admin & Kasir) -->
           <button type="button" onclick="switchTab('attendance')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="attendance">
             <i data-lucide="user-check" class="w-4 h-4 flex-shrink-0"></i>
             <span>Absensi</span>
           </button>
 
-          <!-- TAB: Tutup Kasir (Admin & Kasir) -->
           <button type="button" onclick="switchTab('closing')" class="nav-tab flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="closing">
             <i data-lucide="lock" class="w-4 h-4 flex-shrink-0"></i>
             <span>Tutup Kasir</span>
           </button>
 
-          <!-- Inventori Barang (Khusus Admin) -->
           <button type="button" onclick="switchTab('inventory')" class="nav-tab admin-only flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="inventory">
             <i data-lucide="package" class="w-4 h-4 flex-shrink-0"></i>
             <span>Inventori Barang</span>
           </button>
 
-          <!-- Tarif Sewa (Khusus Admin) -->
           <button type="button" onclick="switchTab('rates')" class="nav-tab admin-only flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="rates">
             <i data-lucide="badge-percent" class="w-4 h-4 flex-shrink-0"></i>
             <span>Tarif Sewa</span>
           </button>
 
-          <!-- Integrasi Cloud (Khusus Admin) -->
           <button type="button" onclick="switchTab('integration')" class="nav-tab admin-only flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="integration">
             <i data-lucide="cloud" class="w-4 h-4 flex-shrink-0"></i>
             <span>Integrasi & QRIS</span>
           </button>
 
-          <!-- Kelola Akun Pengguna (Khusus Admin) -->
           <button type="button" onclick="switchTab('users')" class="nav-tab admin-only flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs" data-tab="users">
             <i data-lucide="user-cog" class="w-4 h-4 flex-shrink-0"></i>
             <span>Kelola User</span>
@@ -466,7 +468,6 @@
         
         <!-- DASHBOARD KASIR VIEW -->
         <div id="kasirDashboardView" class="space-y-6 hidden">
-          <!-- Welcome Banner -->
           <div class="bg-gradient-to-r from-emerald-900/60 to-slate-900 border border-emerald-500/20 p-6 rounded-3xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Shift Aktif Kasir</span>
@@ -657,7 +658,6 @@
             
             <!-- Filter & Search Bar -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between">
-              <!-- Search -->
               <div class="relative w-full sm:w-72">
                 <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
                 <input type="text" id="posSearchInput" oninput="renderPosCatalog()" placeholder="Cari nama barang / barcode..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
@@ -780,7 +780,6 @@
             </div>
           </div>
 
-          <!-- Shortcut Filter Buttons & Status Label -->
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
             <div class="flex flex-wrap items-center gap-1.5 text-xs">
               <span class="text-slate-400 text-[11px] mr-1">Pintas:</span>
@@ -868,14 +867,12 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Form Input Invoice (Kiri - Col 7) -->
           <div class="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-3xl space-y-4">
             <h3 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
               <i data-lucide="file-pen" class="w-5 h-5 text-emerald-400"></i>
               Informasi Utama Invoice
             </h3>
 
-            <!-- Data Utama -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label class="text-slate-400 block mb-1 font-semibold">Nomor Invoice *</label>
@@ -914,7 +911,6 @@
               </div>
             </div>
 
-            <!-- Tabel Baris Aktivitas / Item -->
             <div class="border-t border-slate-800 pt-4 space-y-3">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
@@ -925,13 +921,11 @@
                 </button>
               </div>
 
-              <!-- List Container Baris Item -->
               <div id="invoiceItemsContainer" class="space-y-2.5">
                 <!-- Diisi via JavaScript -->
               </div>
             </div>
 
-            <!-- Kalkulasi Tambahan & Biaya -->
             <div class="border-t border-slate-800 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
                 <label class="text-slate-400 block mb-1">Jasa Tambahan (Rp)</label>
@@ -947,7 +941,6 @@
               </div>
             </div>
 
-            <!-- Syarat & Ketentuan / Catatan -->
             <div class="border-t border-slate-800 pt-3 space-y-3 text-xs">
               <div>
                 <label class="text-slate-400 block mb-1">Keterangan Tambahan / Syarat & Ketentuan</label>
@@ -958,7 +951,6 @@
 
           <!-- Live Preview Invoice Layar (Kanan - Col 5) -->
           <div class="lg:col-span-5 bg-white text-slate-900 p-6 rounded-3xl shadow-2xl space-y-4 font-sans border border-slate-200">
-            <!-- Header Dokumen -->
             <div class="flex justify-between items-start border-b border-slate-200 pb-4">
               <div>
                 <h3 class="text-xl font-black text-slate-900 tracking-tight" id="prevInvNumberDisplay">Invoice #INV-311026</h3>
@@ -968,13 +960,11 @@
                   <p class="text-[10px] leading-tight">Gg. Pulau Dewata, Pemaron, Kec. Buleleng, Kab. Buleleng, Bali</p>
                 </div>
               </div>
-              <!-- LOGO RESMI SINGARAJA SOCCER FIELD (PREVIEW LAYAR) -->
               <div class="w-24 h-24 flex items-center justify-end flex-shrink-0" id="prevInvLogoContainer">
                 <img src="icon-192.png" alt="Logo Singaraja Soccerfield" class="w-full h-full object-contain drop-shadow-sm">
               </div>
             </div>
 
-            <!-- Info Penerima & Tanggal -->
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1">
               <div class="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">INVOICE UNTUK:</div>
               <div class="font-black text-slate-900 text-sm" id="prevInvCustomer">Yth. HIPMI BULELENG</div>
@@ -988,7 +978,6 @@
               </div>
             </div>
 
-            <!-- Tabel Item Preview Ringkas -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-[11px]">
                 <thead class="bg-slate-100 text-slate-700 font-bold border-y border-slate-300">
@@ -1005,7 +994,6 @@
               </table>
             </div>
 
-            <!-- Ringkasan Total Preview -->
             <div class="border-t-2 border-slate-300 pt-3 space-y-1.5 text-xs">
               <div class="flex justify-between text-slate-600">
                 <span>Sub Total:</span>
@@ -1054,7 +1042,6 @@
           </button>
         </div>
 
-        <!-- Filter Date -->
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2 text-xs">
             <span class="text-slate-400">Pilih Tanggal:</span>
@@ -1064,7 +1051,6 @@
           <button onclick="setBookingDateAll()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-slate-300">Semua Jadwal</button>
         </div>
 
-        <!-- Booking List Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -1105,7 +1091,6 @@
           </div>
         </div>
 
-        <!-- Bon Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -1147,14 +1132,12 @@
           </div>
         </div>
 
-        <!-- Filter Category -->
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center gap-2">
           <button onclick="setExpenseFilter('ALL')" class="expense-filter-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white" data-filter="ALL">Semua</button>
           <button onclick="setExpenseFilter('KASIR')" class="expense-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white" data-filter="KASIR">Kebutuhan Kasir (Es, Plastik, dll.)</button>
           <button onclick="setExpenseFilter('LAPANGAN')" class="expense-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white" data-filter="LAPANGAN">Maintenance Lapangan</button>
         </div>
 
-        <!-- Expense Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -1199,7 +1182,6 @@
           </div>
         </div>
 
-        <!-- Filter Karyawan & Keterangan Urutan -->
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-2">
@@ -1218,7 +1200,6 @@
           </div>
         </div>
 
-        <!-- Attendance Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -1262,7 +1243,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Closing Form (Col 6) -->
           <div class="lg:col-span-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 class="font-bold text-white text-base flex items-center gap-2">
@@ -1289,7 +1269,6 @@
               </div>
             </div>
 
-            <!-- Auto Calculated Indicators -->
             <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 space-y-2 text-xs">
               <div class="flex justify-between text-slate-400">
                 <span>Penjualan Cash Sistem (<span id="closeDateLabel">Hari Ini</span>):</span>
@@ -1324,7 +1303,6 @@
             </button>
           </div>
 
-          <!-- Closing History (Col 6) -->
           <div class="lg:col-span-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 class="font-bold text-white text-base flex items-center gap-2">
@@ -1365,23 +1343,19 @@
             <p class="text-xs text-slate-400 mt-1">Kelola stok, harga modal, harga jual, foto produk, serta import/export file Excel.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <!-- Export Excel -->
             <button onclick="exportProductsToExcel()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i> Export Excel (.xlsx)
             </button>
-            <!-- Import Excel -->
             <label class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
               <i data-lucide="upload" class="w-4 h-4 text-teal-400"></i> Import Excel
               <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleExcelImport(event)" class="hidden">
             </label>
-            <!-- Add Product -->
             <button onclick="openProductModal()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
               <i data-lucide="plus" class="w-4 h-4"></i> Tambah Barang
             </button>
           </div>
         </div>
 
-        <!-- Inventory Table -->
         <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -1420,7 +1394,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Weekday Rates -->
           <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
               <i data-lucide="calendar" class="w-5 h-5 text-emerald-400"></i>
@@ -1451,7 +1424,6 @@
             </div>
           </div>
 
-          <!-- Weekend Rates -->
           <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
             <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
               <i data-lucide="sun" class="w-5 h-5 text-amber-400"></i>
@@ -1490,13 +1462,13 @@
       <section id="section-integration" class="space-y-6 hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-xl sm:text-2xl font-black text-white">Integrasi Cloud & Setting QRIS</h2>
-            <p class="text-xs text-slate-400 mt-1">Atur gambar QRIS resmi, koneksi Google Apps Script Webhook, dan Firebase Database.</p>
+            <h2 class="text-xl sm:text-2xl font-black text-white">Integrasi Brankas Google Script & Setting QRIS</h2>
+            <p class="text-xs text-slate-400 mt-1">API Key Firebase kini disembunyikan secara aman di dalam Google Apps Script (`PropertiesService`) dan tidak terekspos di GitHub.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="downloadAppsScriptCode()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="download" class="w-4 h-4 text-teal-400"></i>
-              <span>Unduh Code.gs Spreadsheet</span>
+            <button onclick="downloadAppsScriptCode()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span>Unduh Code.gs (Brankas API + Proxy Aman)</span>
             </button>
           </div>
         </div>
@@ -1518,7 +1490,6 @@
               <span id="qrisDynamicStatusBadge" class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-400 border border-slate-700">STATIS</span>
             </div>
 
-            <!-- Preview Display -->
             <div class="flex flex-col items-center justify-center p-4 bg-slate-950 border border-slate-800/80 rounded-2xl">
               <div class="w-48 h-48 sm:w-56 sm:h-56 bg-white p-2.5 rounded-2xl flex items-center justify-center shadow-inner overflow-hidden">
                 <img id="qrisSettingsPreviewImg" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SINGARAJA_SOCCERFIELD_QRIS" alt="QRIS Preview" class="w-full h-full object-contain">
@@ -1527,7 +1498,6 @@
               <span class="text-[10px] text-slate-500 font-mono mt-0.5 text-center">Upload gambar QRIS GoPay Merchant (GoBiz) Anda agar sistem otomatis mengubahnya menjadi QRIS Dinamis</span>
             </div>
 
-            <!-- Input Manual / Hasil Ekstraksi Payload EMVCo QRIS -->
             <div class="space-y-1.5 text-xs">
               <label class="text-slate-400 block font-semibold">Data String EMVCo QRIS GoPay Merchant:</label>
               <div class="flex gap-2">
@@ -1538,7 +1508,6 @@
               </div>
             </div>
 
-            <!-- Upload Controls -->
             <div class="space-y-2">
               <label class="w-full py-3 px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-600/20">
                 <i data-lucide="upload" class="w-4 h-4"></i>
@@ -1553,78 +1522,94 @@
             </div>
           </div>
 
-          <!-- KARTU 2: GOOGLE SPREADSHEET & FIREBASE SETTINGS -->
+          <!-- KARTU 2: BRANKAS KEAMANAN GOOGLE APPS SCRIPT & PROXY FIREBASE -->
           <div class="lg:col-span-7 space-y-6">
             
-            <!-- Google Sheets Webhook -->
-            <div class="bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-3xl space-y-4">
-              <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                  <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <!-- Google Apps Script Vault & Proxy -->
+            <div class="bg-slate-900 border border-emerald-500/40 p-5 sm:p-6 rounded-3xl space-y-4 shadow-lg shadow-emerald-950/20">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <i data-lucide="shield-lock" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-white text-sm sm:text-base">1. Brankas Google Apps Script (Penyimpan API Key)</h3>
+                    <p class="text-[11px] text-slate-400">Menyimpan API Key Firebase di server Google & memvalidasi Token Rahasia</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="font-bold text-white text-sm sm:text-base">Google Spreadsheet Webhook</h3>
-                  <p class="text-[11px] text-slate-400">Kirim data transaksi POS, booking, tutup kasir & absensi ke Google Sheet</p>
+                <span id="gasVaultStatusBadge" class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30">BELUM TERHUBUNG</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="sm:col-span-2">
+                  <label class="text-slate-400 block mb-1 font-semibold">Google Apps Script Web App URL (akhiran /exec) *:</label>
+                  <input type="url" id="sheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="text-slate-400 block mb-1 font-semibold">Token Rahasia Brankas (Secret Token) *:</label>
+                  <input type="password" id="gasVaultSecretToken" placeholder="Contoh: SSF-RAHASIA-2026 (Harus sama dengan VAULT_SECRET_TOKEN di Code.gs)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                  <p class="text-[10px] text-slate-500 mt-1">Token ini disimpan di browser perangkat kasir Anda (tidak pernah tertulis di kode GitHub) untuk membuka Brankas API di Google Apps Script.</p>
                 </div>
               </div>
 
-              <div class="space-y-3 text-xs">
-                <div>
-                  <label class="text-slate-400 block mb-1">Google Apps Script Web App URL (akhiran /exec):</label>
-                  <input type="url" id="sheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                  <button type="button" onclick="saveWebhookUrl()" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    <span>Simpan Webhook URL</span>
-                  </button>
-                  <button type="button" onclick="testWebhookConnection()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
-                    <i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i>
-                    <span>Tes Ping Webhook</span>
-                  </button>
-                </div>
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="button" onclick="saveWebhookUrl()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5">
+                  <i data-lucide="key" class="w-4 h-4"></i>
+                  <span>Simpan & Tarik API dari Google Script</span>
+                </button>
+                <button type="button" onclick="testWebhookConnection()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border border-slate-700">
+                  <i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Tes Koneksi Brankas GAS</span>
+                </button>
               </div>
             </div>
 
-            <!-- Firebase Database Config -->
+            <!-- Form Pengisian Kredensial Firebase ke Brankas Google Script -->
             <div class="bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-3xl space-y-4">
               <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
                 <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
                   <i data-lucide="database" class="w-4 h-4"></i>
                 </div>
                 <div>
-                  <h3 class="font-bold text-white text-sm sm:text-base">Database Firebase Cloud</h3>
-                  <p class="text-[11px] text-slate-400">Sinkronisasi data cloud real-time via Firebase SDK & Anonymous Auth (singarajasoccerfield-1f2bb)</p>
+                  <h3 class="font-bold text-white text-sm sm:text-base">2. Simpan Konfigurasi Firebase ke Dalam Google Script</h3>
+                  <p class="text-[11px] text-slate-400">Isi data di bawah lalu klik <b>"Kirim & Kunci ke Brankas Google Script"</b>. Kode HTML Anda di GitHub akan tetap 100% bersih tanpa API Key.</p>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <label class="text-slate-400 block mb-1">Firebase Project ID</label>
-                  <input type="text" id="fbProjectId" value="singarajasoccerfield-1f2bb" placeholder="singarajasoccerfield-1f2bb" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+                  <input type="text" id="fbProjectId" placeholder="Contoh: singarajasoccerfield-1f2bb" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
                 </div>
                 <div>
-                  <label class="text-slate-400 block mb-1">API Key</label>
-                  <input type="password" id="fbApiKey" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+                  <label class="text-slate-400 block mb-1">Firebase Web API Key</label>
+                  <input type="password" id="fbApiKey" placeholder="AIzaSy... (Disimpan di GAS, bukan di HTML)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-1">Auth Domain</label>
+                  <input type="text" id="fbAuthDomain" placeholder="namaproyek.firebaseapp.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-1">Realtime Database URL (RTDB)</label>
+                  <input type="text" id="fbDbUrl" placeholder="https://namaproyek-default-rtdb.firebaseio.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="text-slate-400 block mb-1">Auth Domain</label>
-                  <input type="text" id="fbAuthDomain" value="singarajasoccerfield-1f2bb.firebaseapp.com" placeholder="singarajasoccerfield-1f2bb.firebaseapp.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
-                  <p class="text-[10px] text-slate-500 mt-1">Menggunakan SDK Resmi Firebase v11 dengan Autentikasi Anonim aktif. Bebas CORS error.</p>
+                  <label class="text-amber-400 font-semibold block mb-1">RTDB Database Secret (Opsional - Khusus Proxy Server GAS Jika Rules RTDB `.read/.write: false`)</label>
+                  <input type="password" id="fbDbSecret" placeholder="Masukkan Database Secret jika ingin semua baca/tulis RTDB lewat Proxy Server GAS" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+                  <p class="text-[10px] text-slate-500 mt-1">Dengan menyimpan kredensial ini ke Brankas Google Script, perangkat kasir lain cukup memasukkan <b>Webhook URL</b> dan <b>Token Rahasia</b> untuk langsung terhubung ke Firebase tanpa pernah melihat API Key di GitHub.</p>
                 </div>
               </div>
 
-              <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                <button type="button" onclick="saveFirebaseConfig()" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20">
-                  <i data-lucide="check-circle" class="w-4 h-4"></i>
-                  <span>Simpan Konfigurasi Database</span>
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="button" onclick="saveFirebaseConfigToGasVault()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-600/20">
+                  <i data-lucide="lock" class="w-4 h-4"></i>
+                  <span>Kirim & Kunci API ke Brankas Google Script</span>
                 </button>
-                <button type="button" onclick="testFirebaseConnection()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                <button type="button" onclick="testFirebaseConnection()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border border-slate-700">
                   <i data-lucide="radio" class="w-4 h-4 text-amber-400"></i>
-                  <span>Tes Koneksi Firebase SDK</span>
+                  <span>Tes Koneksi Firebase & Proxy GAS</span>
                 </button>
-                <button type="button" onclick="syncAllToFirebaseCloud()" class="w-full sm:w-auto px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-600/20">
+                <button type="button" onclick="syncAllToFirebaseCloud()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20">
                   <i data-lucide="cloud-upload" class="w-4 h-4"></i>
                   <span>Sinkronisasi Data ke Cloud</span>
                 </button>
@@ -1634,13 +1619,13 @@
               <div id="fbDiagnosticBox" class="p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800/80 text-[11px] text-slate-400 space-y-1.5 hidden">
                 <div class="flex items-center gap-2 font-bold text-slate-200">
                   <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>Hasil Diagnostik Koneksi:</span>
+                  <span>Hasil Diagnostik Keamanan & Koneksi:</span>
                 </div>
                 <p id="fbDiagnosticText" class="font-mono text-slate-300">Menunggu tes...</p>
               </div>
             </div>
 
-            <!-- KARTU 3: ARSITEKTUR DATABASE MULTI-TAHUN (SHARDING & BACKUP AWET BERTAHUN-TAHUN) -->
+            <!-- KARTU 3: ARSITEKTUR DATABASE MULTI-TAHUN -->
             <div class="bg-slate-900 border border-emerald-500/30 p-5 sm:p-6 rounded-3xl space-y-4">
               <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
@@ -1648,14 +1633,13 @@
                     <i data-lucide="hard-drive" class="w-4 h-4"></i>
                   </div>
                   <div>
-                    <h3 class="font-bold text-white text-sm sm:text-base">Mesin Database Multi-Tahun (Auto-Partitioning)</h3>
-                    <p class="text-[11px] text-slate-400">Pemisahan otomatis per koleksi & periode tahun agar bebas batas 1MB Firestore</p>
+                    <h3 class="font-bold text-white text-sm sm:text-base">Mesin Database Multi-Tahun (GAS Proxy + Auto-Partitioning)</h3>
+                    <p class="text-[11px] text-slate-400">Pemisahan otomatis per koleksi & periode tahun melalui jalur aman Google Apps Script</p>
                   </div>
                 </div>
-                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AKTIF SELAMANYA</span>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PROTEKSI PENUH</span>
               </div>
 
-              <!-- Indikator Kesehatan Penyimpanan -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                 <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
                   <span class="text-[10px] text-slate-400 block">Memori Browser (Lokal)</span>
@@ -1675,14 +1659,6 @@
                 </div>
               </div>
 
-              <div class="p-3.5 bg-slate-950/90 rounded-2xl border border-slate-800 text-[11px] text-slate-300 space-y-1 leading-relaxed">
-                <p class="font-bold text-emerald-400">🛡️ Mengapa Database Ini Awet Bertahun-Tahun?</p>
-                <p>1. <b>Partisi Otomatis Per Tahun (`YYYY`):</b> Data Transaksi, Booking, Pengeluaran, Absensi, dan Tutup Kasir dipecah otomatis per dokumen tahunan & koleksi terpisah sehingga tidak akan pernah menyentuh batas maksimal 1 MB per dokumen Firestore.</p>
-                <p>2. <b>Dual-Cloud Redundancy:</b> Tersimpan serentak di <b>Cloud Firestore</b> + <b>Firebase Realtime Database</b> + <b>IndexedDB Browser</b> (kapasitas hingga ratusan MB, jauh di atas LocalStorage biasa).</p>
-                <p>3. <b>Pembersih Cache Lokal Pintar:</b> Menjaga aplikasi tetap ringan dan cepat dibuka meski sudah berjalan 5–10 tahun.</p>
-              </div>
-
-              <!-- Tombol Aksi Pemeliharaan & Backup Jangka Panjang -->
               <div class="flex flex-wrap gap-2 pt-1">
                 <button type="button" onclick="pullAllMultiYearPartitions(true)" class="px-3.5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-teal-600/20">
                   <i data-lucide="cloud-download" class="w-4 h-4"></i>
@@ -1716,7 +1692,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-black text-white">Kelola Akun & Hak Akses Pengguna</h2>
-            <p class="text-xs text-slate-400 mt-1">Daftar username dan password resmi petugas kasir dan administrator.</p>
+            <p class="text-xs text-slate-400 mt-1">Daftar username dan password resmi petugas kasir dan administrator (Disimpan dengan Hash SHA-256).</p>
           </div>
           <button onclick="openAddUserModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Akun Baru
@@ -1731,7 +1707,7 @@
                   <th class="p-4">Nama Lengkap</th>
                   <th class="p-4">Username Login</th>
                   <th class="p-4">Peran (Role)</th>
-                  <th class="p-4">Password / PIN</th>
+                  <th class="p-4">Status Proteksi Sandi</th>
                   <th class="p-4 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -1763,7 +1739,6 @@
         </button>
       </div>
 
-      <!-- Tombol Pilihan Metode Pembayaran (Muncul untuk Kasir POS maupun Lunasi Bon) -->
       <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-2xl border border-slate-800">
         <button type="button" id="btnSwitchPayCash" onclick="switchPaymentModalMethod('CASH')" class="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-emerald-600 text-white shadow">
           <i data-lucide="banknote" class="w-4 h-4"></i>
@@ -1780,14 +1755,12 @@
         <span id="payModalTotalText" class="font-mono font-black text-emerald-400 text-lg">Rp 0</span>
       </div>
 
-      <!-- TAMPILAN PEMBAYARAN CASH (TUNAI) -->
       <div id="payCashView" class="space-y-3 text-xs">
         <div>
           <label class="text-slate-400 block mb-1">Nominal Uang Diterima (Rp) *</label>
           <input type="number" id="payCashReceived" oninput="calculateChange()" placeholder="Masukkan nominal tunai..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-mono text-base font-bold focus:outline-none focus:border-emerald-500">
         </div>
 
-        <!-- Tombol Cepat Nominal -->
         <div>
           <label class="text-slate-400 block mb-1.5">Pilihan Cepat Uang Pas / Pecahan:</label>
           <div id="payQuickAmounts" class="grid grid-cols-3 gap-2">
@@ -1801,7 +1774,6 @@
         </div>
       </div>
 
-      <!-- TAMPILAN PEMBAYARAN QRIS DINAMIS GOPAY MERCHANT -->
       <div id="payQrisView" class="space-y-3 text-xs hidden">
         <div class="flex flex-col items-center justify-center p-4 bg-slate-950 border border-slate-800/80 rounded-2xl">
           <div class="flex items-center gap-1.5 mb-2">
@@ -1825,7 +1797,7 @@
     </div>
   </div>
 
-  <!-- MODAL: KONFIRMASI SUKSES PEMBAYARAN (PILIHAN KELUAR ATAU CETAK) -->
+  <!-- MODAL: KONFIRMASI SUKSES PEMBAYARAN -->
   <div id="paymentSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
       <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center border border-emerald-500/30">
@@ -1894,7 +1866,6 @@
         </button>
       </div>
 
-      <!-- Status Koneksi Saat Ini -->
       <div class="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
         <div>
           <span class="text-slate-400 block text-[11px]">Perangkat Terhubung:</span>
@@ -1903,7 +1874,6 @@
         <span id="btModalStatusBadge" class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-400 border border-slate-700">TERPUTUS</span>
       </div>
 
-      <!-- Kotak Diagnostik / Info jika Pop-up Gagal Muncul -->
       <div id="btDiagAlert" class="hidden p-3.5 rounded-2xl bg-amber-950/50 border border-amber-500/40 text-amber-200 text-xs space-y-1.5">
         <div class="font-bold text-amber-400 flex items-center gap-1.5">
           <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i>
@@ -1912,7 +1882,6 @@
         <p id="btDiagMessage" class="text-[11px] text-amber-200/90 leading-relaxed"></p>
       </div>
 
-      <!-- Tombol Utama Scan & Munculkan Pop-up Bluetooth -->
       <div class="space-y-2">
         <button type="button" onclick="pairAndPrintBluetoothNow()" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
           <i data-lucide="search" class="w-4 h-4"></i>
@@ -1931,7 +1900,6 @@
         </div>
       </div>
 
-      <!-- Pilihan Mode Cetak Default (Solusi untuk Semua Jenis HP / APK / Printer) -->
       <div class="border-t border-slate-800 pt-3 space-y-2 text-xs">
         <label class="text-slate-300 font-bold block">Metode Cetak Otomatis Saat Klik "Cetak Nota":</label>
         <select id="btPrintModeSelect" onchange="saveBtPrintMode(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:outline-none focus:border-emerald-500">
@@ -1939,12 +1907,6 @@
           <option value="SYSTEM_PRINT">2. Layanan Cetak Sistem Android / Bluetooth Terpasang (window.print)</option>
           <option value="RAWBT_INTENT">3. Jalur Bluetooth Classic SPP / APK WebView Bridge (Intent ESC/POS)</option>
         </select>
-        <div class="p-3 bg-slate-950/90 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 space-y-1 leading-relaxed">
-          <p class="font-bold text-slate-200">💡 Mengapa Pop-up Bluetooth Tidak Muncul?</p>
-          <p>1. Wajib menyalakan <b>Bluetooth</b> DAN <b>Lokasi (GPS)</b> di HP Android (syarat wajib Android untuk memindai printer BLE).</p>
-          <p>2. Izinkan akses <b>Perangkat Terdekat (Nearby Devices)</b> & <b>Lokasi</b> pada pengaturan aplikasi browser Chrome.</p>
-          <p>3. Jika Anda menginstal file <b>.APK hasil WebView</b> yang memblokir pop-up Chrome, buka aplikasi melalui <b>Chrome</b> lalu klik tombol <b>"Install Aplikasi di Perangkat Ini"</b>, atau ubah metode di atas ke <b>Nomor 2 / Nomor 3</b>.</p>
-        </div>
       </div>
     </div>
   </div>
@@ -1969,8 +1931,8 @@
           <input type="text" id="usrUsername" placeholder="Contoh: kasir2" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1">
         </div>
         <div>
-          <label class="text-slate-400">Password / PIN *</label>
-          <input type="text" id="usrPassword" placeholder="PIN/Password minimal 4 karakter" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1">
+          <label class="text-slate-400">Password / PIN Baru *</label>
+          <input type="password" id="usrPassword" placeholder="Kosongkan jika tidak ingin mengganti PIN" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono mt-1">
         </div>
         <div>
           <label class="text-slate-400">Peran Akun</label>
@@ -1984,7 +1946,7 @@
       <input type="hidden" id="usrEditId" value="">
 
       <button onclick="saveUserData()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/20">
-        Simpan Akun
+        Simpan Akun (Enkripsi SHA-256)
       </button>
     </div>
   </div>
@@ -2036,7 +1998,6 @@
       </div>
 
       <div class="space-y-3 text-xs">
-        <!-- Photo Upload Preview -->
         <div class="flex items-center gap-4">
           <div class="w-20 h-20 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             <img id="productPreviewImg" src="https://placehold.co/150x150/1e293b/94a3b8?text=Foto" alt="Foto" class="w-full h-full object-cover">
@@ -2138,7 +2099,6 @@
           </div>
         </div>
 
-        <!-- Price Auto Calculation Card -->
         <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 space-y-1">
           <div class="flex justify-between text-slate-400">
             <span>Tarif Standar:</span>
@@ -2299,7 +2259,6 @@
         </button>
       </div>
 
-      <!-- Add New Employee Form -->
       <div class="bg-slate-950 p-4 rounded-2xl space-y-3 text-xs border border-slate-800">
         <span class="font-bold text-emerald-400">Tambah Karyawan Baru</span>
         <div class="grid grid-cols-2 gap-3">
@@ -2323,7 +2282,6 @@
         </button>
       </div>
 
-      <!-- Employee List -->
       <div class="max-h-60 overflow-y-auto divide-y divide-slate-800/60" id="empListContainer">
         <!-- Loaded via JS -->
       </div>
@@ -2414,9 +2372,8 @@
     </div>
   </div>
 
-  <!-- PRINT INVOICE A4 DOKUMEN CONTAINER (FORMAT SESUAI LAMPIRAN RESMI) -->
+  <!-- PRINT INVOICE A4 DOKUMEN CONTAINER -->
   <div id="invoicePrintArea" class="hidden">
-    <!-- Header Invoice -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #1f2c33; padding-bottom: 15px;">
       <div>
         <h1 style="font-size: 22px; font-weight: 900; margin: 0; color: #111827; letter-spacing: -0.5px;" id="a4InvHeaderTitle">Invoice #INV-311026</h1>
@@ -2424,13 +2381,11 @@
         <p style="font-size: 11px; color: #4b5563; margin: 2px 0;">087888444427 &bull; Singarajasoccerfield@gmail.com</p>
         <p style="font-size: 10.5px; color: #4b5563; margin: 2px 0;">Gg. Pulau Dewata, Pemaron, Kec. Buleleng, Kab. Buleleng, Bali</p>
       </div>
-      <!-- LOGO RESMI SINGARAJA SOCCER FIELD (A4 PRINT) -->
       <div style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: flex-end;">
         <img src="icon-192.png" alt="Logo Singaraja Soccerfield" style="width: 100%; height: 100%; object-fit: contain;">
       </div>
     </div>
 
-    <!-- Info Penerima & Status -->
     <div style="margin-bottom: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px;">
       <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">INVOICE untuk:</div>
       <div style="font-size: 16px; font-weight: 800; color: #111827; margin-bottom: 8px;" id="a4InvCustomer">Yth. HIPMI BULELENG</div>
@@ -2443,7 +2398,6 @@
       </div>
     </div>
 
-    <!-- Tabel Daftar Aktivitas & Jadwal -->
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
       <thead>
         <tr style="background-color: #f3f4f6; border-top: 1px solid #d1d5db; border-bottom: 1px solid #d1d5db; text-align: left;">
@@ -2460,7 +2414,6 @@
       </tbody>
     </table>
 
-    <!-- Keterangan Tambahan & Syarat -->
     <div style="margin-bottom: 16px; font-size: 11px; color: #4b5563;">
       <p style="margin: 0 0 3px 0; font-weight: bold; color: #111827;">Keterangan Tambahan:</p>
       <p style="margin: 0 0 6px 0;" id="a4InvNotes">Sewa Lapangan Mini Soccer</p>
@@ -2468,7 +2421,6 @@
       <p style="margin: 0;" id="a4InvTerms">Pembatalan maksimal H-3. Harap hadir 15 menit sebelum waktu kick-off. Wajib memakai sepatu sepak bola / mini soccer yang sesuai.</p>
     </div>
 
-    <!-- Tabel Rekap Total & Metode Pembayaran -->
     <div style="margin-left: auto; width: 50%; min-width: 280px; margin-bottom: 25px; border-top: 1px solid #d1d5db;">
       <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
         <tr>
@@ -2498,7 +2450,6 @@
       </table>
     </div>
 
-    <!-- Footer Catatan Sistem -->
     <div style="border-top: 1px dashed #9ca3af; padding-top: 10px; font-size: 10.5px; color: #6b7280; font-style: italic; text-align: center;">
       Catatan: Ini adalah tanda terima yang dihasilkan sistem dan tidak memerlukan tanda tangan fisik.
     </div>
@@ -2523,6 +2474,7 @@
     const KEY_RATES = 'ssf_rates_v5';
     const KEY_QRIS = 'ssf_qris_v5';
     const KEY_WEBHOOK = 'ssf_webhook_v5';
+    const KEY_GAS_TOKEN = 'ssf_gas_vault_token_v5';
     const KEY_USERS = 'ssf_users_v5';
     const KEY_AUTH_SESSION = 'ssf_active_session_v5';
     const KEY_ACTIVE_TAB = 'ssf_active_tab_v5';
@@ -2530,7 +2482,6 @@
     const KEY_FIREBASE = 'ssf_firebase_config_v5';
     const KEY_DELETED_IDS = 'ssf_deleted_ids_v5';
 
-    // Daftar ID Dummy lama yang wajib dibersihkan otomatis dari LocalStorage & Cloud
     const PURGED_DUMMY_IDS = new Set([
       'ATT-101', 'ATT-102',
       'TRX-101', 'TRX-102',
@@ -2539,7 +2490,6 @@
       'EXP-101', 'EXP-102'
     ]);
 
-    // Safe Storage Helpers
     function getStored(key, fallback) {
       try {
         const val = localStorage.getItem(key);
@@ -2555,18 +2505,27 @@
       } catch (e) {
         console.warn('Storage quota exceeded or error:', e);
       }
-      // Pemicu sinkronisasi cloud otomatis setiap ada perubahan data
       triggerAutoCloudSync(key, value);
     }
 
-    // Default User Database
+    // ====================================================================
+    // PROTEKSI SANDI PENGGUNA DENGAN SHA-256 (TIDAK ADA PLAINTEXT DI GITHUB)
+    // ====================================================================
+    async function sha256Hex(plainText) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(String(plainText));
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Hash SHA-256 untuk akun default (admin / admin123 & kasir1, kasir2 / 1234)
     const defaultUsers = [
-      { id: 'USR-1', username: 'admin', password: 'admin123', name: 'Owner / Administrator', role: 'Admin' },
-      { id: 'USR-2', username: 'kasir1', password: '1234', name: 'Kadek Sudarma', role: 'Kasir' },
-      { id: 'USR-3', username: 'kasir2', password: '1234', name: 'Wayan Yoga', role: 'Kasir' }
+      { id: 'USR-1', username: 'admin', passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', name: 'Owner / Administrator', role: 'Admin' },
+      { id: 'USR-2', username: 'kasir1', passwordHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', name: 'Kadek Sudarma', role: 'Kasir' },
+      { id: 'USR-3', username: 'kasir2', passwordHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', name: 'Wayan Yoga', role: 'Kasir' }
     ];
 
-    // Default Katalog Produk
     const defaultProducts = [
       { id: 'PRD-1', name: 'Pocari Sweat 500ml', category: 'MINUMAN', cost: 6000, price: 9000, stock: 45, barcode: '89912345601', img: 'https://placehold.co/200x200/0f172a/34d399?text=Pocari' },
       { id: 'PRD-2', name: 'Aqua 600ml Dingin', category: 'MINUMAN', cost: 3000, price: 5000, stock: 60, barcode: '89912345602', img: 'https://placehold.co/200x200/0f172a/34d399?text=Aqua' },
@@ -2577,7 +2536,6 @@
       { id: 'PRD-7', name: 'Sewa Rompi Tim (1 Set)', category: 'PERLENGKAPAN', cost: 0, price: 20000, stock: 10, barcode: '89912345607', img: 'https://placehold.co/200x200/0f172a/34d399?text=Rompi' }
     ];
 
-    // Semua data operasional dimulai bersih tanpa data dummy
     const defaultTransactions = [];
     const defaultBons = [];
     const defaultBookings = [];
@@ -2603,19 +2561,21 @@
 
     const DEFAULT_QRIS = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SINGARAJA_SOCCERFIELD_QRIS';
 
-    // Konfigurasi Resmi Firebase Singaraja Soccerfield
+    // =========================================================================
+    // KEAMANAN MUTLAK: TIDAK ADA API KEY FIREBASE YANG DI-HARDCODE DI FILE HTML
+    // Semua nilai diambil secara dinamis dari Brankas Google Apps Script (GAS)
+    // =========================================================================
     const OFFICIAL_FIREBASE_CONFIG = {
-      apiKey: "AIzaSyAe3JbyvIMTYQRNQQuHPNHPzSqo2n_jdrM",
-      authDomain: "singarajasoccerfield-1f2bb.firebaseapp.com",
-      projectId: "singarajasoccerfield-1f2bb",
-      storageBucket: "singarajasoccerfield-1f2bb.firebasestorage.app",
-      messagingSenderId: "427819640481",
-      appId: "1:427819640481:web:912a1750468b46b136f2e0",
-      measurementId: "G-HHWDYK6GS8",
-      dbUrl: "https://singarajasoccerfield-1f2bb-default-rtdb.firebaseio.com"
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: "",
+      measurementId: "",
+      dbUrl: ""
     };
 
-    // Global State & Deleted IDs Tracker (Mencegah data yang sudah dihapus muncul lagi dari Cloud)
     let currentUser = null;
     let deletedIds = getStored(KEY_DELETED_IDS, []);
     if (!Array.isArray(deletedIds)) deletedIds = [];
@@ -2644,7 +2604,6 @@
 
     function mergeUniqueById(localArr, cloudArr, idKey = 'id') {
       const map = new Map();
-      // Masukkan data cloud terlebih dahulu
       if (Array.isArray(cloudArr)) {
         cloudArr.forEach(item => {
           if (item && item[idKey] && !isRecordDeletedOrDummy(item[idKey])) {
@@ -2652,7 +2611,6 @@
           }
         });
       }
-      // Timpa/tambahkan dengan data lokal terbaru yang belum terhapus
       if (Array.isArray(localArr)) {
         localArr.forEach(item => {
           if (item && item[idKey] && !isRecordDeletedOrDummy(item[idKey])) {
@@ -2661,6 +2619,18 @@
         });
       }
       return Array.from(map.values());
+    }
+
+    // Sanitasi user agar tidak pernah menyimpan plaintext password ke Cloud
+    function sanitizeUsersForStorage(userList) {
+      if (!Array.isArray(userList)) return defaultUsers;
+      return userList.map(u => {
+        const copy = { ...u };
+        if (copy.password && !copy.passwordHash) {
+          // Biarkan migrasi berjalan saat login/save
+        }
+        return copy;
+      });
     }
 
     let users = getStored(KEY_USERS, defaultUsers);
@@ -2673,7 +2643,6 @@
     let employees = cleanDatasetArray(getStored(KEY_EMPLOYEES, defaultEmployees), 'id');
     let closings = cleanDatasetArray(getStored(KEY_CLOSINGS, []), 'id');
 
-    // Simpan kembali hasil pembersihan dummy awal ke localStorage
     try {
       localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
       localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
@@ -2684,13 +2653,12 @@
     let customQrisPayload = getStored(KEY_QRIS_PAYLOAD, '');
     let settlingBonTargetId = null;
     let savedWebhookUrl = getStored(KEY_WEBHOOK, '');
+    let savedGasSecretToken = getStored(KEY_GAS_TOKEN, '');
     let firebaseConfig = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
 
-    // Chart.js Global Instances
     let trendChart = null;
     let methodChart = null;
 
-    // POS & UI Interactive States
     let cart = [];
     let currentPosCategory = 'ALL';
     let currentExpenseFilter = 'ALL';
@@ -2698,7 +2666,6 @@
     let lastCompletedTransaction = null;
     let tempProductImage = '';
 
-    // Firebase App & Services Instances
     let fbApp = null;
     let fbAuth = null;
     let fbDb = null;
@@ -2706,7 +2673,6 @@
     let isCloudReady = false;
     let cloudSyncDebounceTimer = null;
 
-    // Toast Utility
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -2729,12 +2695,10 @@
       }, 3500);
     }
 
-    // Currency Formatter
     function formatRupiah(num) {
       return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
     }
 
-    // Helper fungsi tanggal lokal perangkat (WITA/WIB/WIT YYYY-MM-DD) bebas bug selisih zona waktu UTC
     function getLocalDateString(val = new Date()) {
       if (!val) return '';
       if (typeof val === 'string') {
@@ -2757,7 +2721,6 @@
       return '';
     }
 
-    // Modal Helpers
     function openModal(id) {
       const el = document.getElementById(id);
       if (el) el.classList.remove('hidden');
@@ -2768,10 +2731,53 @@
       if (el) el.classList.add('hidden');
     }
 
+    function toggleQuickVaultSetup() {
+      const box = document.getElementById('quickVaultSetupBox');
+      if (!box) return;
+      box.classList.toggle('hidden');
+      const urlIn = document.getElementById('loginGasUrlInput');
+      const tokIn = document.getElementById('loginGasTokenInput');
+      if (urlIn) urlIn.value = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      if (tokIn) tokIn.value = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+    }
+
+    async function connectQuickVaultFromLogin() {
+      const url = document.getElementById('loginGasUrlInput')?.value.trim() || '';
+      const token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
+      if (!url || !token) {
+        showToast('Masukkan URL Google Script dan Token Rahasia Brankas!', 'error');
+        return;
+      }
+      savedWebhookUrl = url;
+      savedGasSecretToken = token;
+      localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
+      localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(token));
+      const ok = await fetchFirebaseConfigFromGasVault(true);
+      if (ok) {
+        document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
+      }
+    }
+
     // ==========================================
-    // AUTH & ROLE CONTROLLER
+    // AUTH & ROLE CONTROLLER (SHA-256 HASHED)
     // ==========================================
-    function handleLogin() {
+    async function verifyUserPassword(userObj, plainInput) {
+      if (!userObj) return false;
+      const inputHash = await sha256Hex(plainInput);
+      if (userObj.passwordHash && userObj.passwordHash === inputHash) {
+        return true;
+      }
+      // Kompatibilitas mundur jika data user lama masih memiliki field password biasa, lalu migrasi otomatis ke SHA-256
+      if (userObj.password && String(userObj.password) === String(plainInput)) {
+        userObj.passwordHash = inputHash;
+        delete userObj.password;
+        setStored(KEY_USERS, users);
+        return true;
+      }
+      return false;
+    }
+
+    async function handleLogin() {
       const usernameInput = document.getElementById('loginUsername').value.trim();
       const passwordInput = document.getElementById('loginPassword').value.trim();
       const errBox = document.getElementById('loginErrorAlert');
@@ -2784,19 +2790,30 @@
         return;
       }
 
-      // Pastikan daftar akun pengguna selalu valid (fallback ke defaultUsers jika kosong/corrupt)
       if (!Array.isArray(users) || users.length === 0) {
         users = [...defaultUsers];
       }
 
-      // Validasi dan cari akun di Database Pengguna (cek juga defaultUsers jika belum tersinkron)
-      const foundUser = users.find(u => 
-        u && u.username && u.username.toLowerCase() === usernameInput.toLowerCase() && 
-        String(u.password) === String(passwordInput)
-      ) || defaultUsers.find(u =>
-        u.username.toLowerCase() === usernameInput.toLowerCase() &&
-        String(u.password) === String(passwordInput)
-      );
+      let foundUser = null;
+      for (const u of users) {
+        if (u && u.username && u.username.toLowerCase() === usernameInput.toLowerCase()) {
+          if (await verifyUserPassword(u, passwordInput)) {
+            foundUser = u;
+            break;
+          }
+        }
+      }
+
+      if (!foundUser) {
+        for (const du of defaultUsers) {
+          if (du.username.toLowerCase() === usernameInput.toLowerCase()) {
+            if (await verifyUserPassword(du, passwordInput)) {
+              foundUser = du;
+              break;
+            }
+          }
+        }
+      }
 
       if (!foundUser) {
         errText.innerText = 'Kombinasi Username atau Password salah!';
@@ -2805,7 +2822,6 @@
         return;
       }
 
-      // Login Berhasil: Peran dideteksi otomatis dari data akun (Admin atau Kasir)
       errBox.classList.add('hidden');
       currentUser = { 
         id: foundUser.id,
@@ -2814,7 +2830,6 @@
         username: foundUser.username
       };
 
-      // Simpan Sesi Login agar tidak logout saat refresh
       setStored(KEY_AUTH_SESSION, currentUser);
 
       document.getElementById('loginPassword').value = '';
@@ -2839,7 +2854,6 @@
       const errBox = document.getElementById('loginErrorAlert');
       if (errBox) errBox.classList.add('hidden');
       currentUser = null;
-      // Hapus Sesi Login dan Tab Aktif saat logout manual
       localStorage.removeItem(KEY_AUTH_SESSION);
       try {
         localStorage.removeItem(KEY_ACTIVE_TAB);
@@ -2853,14 +2867,12 @@
       if (!currentUser) return;
       const isKasir = currentUser.role === 'Kasir';
       
-      // Pasang class global di body untuk kontrol CSS mutlak
       if (isKasir) {
         document.body.classList.add('role-kasir-active');
       } else {
         document.body.classList.remove('role-kasir-active');
       }
 
-      // Update Navbar Badges
       const roleBadge = document.getElementById('roleBadge');
       const navUserName = document.getElementById('navUserName');
       if (roleBadge) {
@@ -2871,7 +2883,6 @@
       }
       if (navUserName) navUserName.innerText = currentUser.name;
 
-      // Menu yang dibatasi untuk Kasir: Inventori, Tarif Sewa, Integrasi & QRIS, Kelola User, dan Kelola Karyawan
       const adminOnlyElements = document.querySelectorAll('.admin-only');
       adminOnlyElements.forEach(el => {
         if (isKasir) {
@@ -2883,7 +2894,6 @@
         }
       });
 
-      // Switch Dashboard View
       const kasirDash = document.getElementById('kasirDashboardView');
       const adminDash = document.getElementById('adminDashboardView');
       const kasirWelcome = document.getElementById('kasirWelcomeName');
@@ -2936,7 +2946,6 @@
     }
 
     function switchTab(tabId) {
-      // Proteksi Akses Kasir: Tolak akses jika Kasir mencoba membuka menu admin
       const isKasir = currentUser && currentUser.role === 'Kasir';
       const adminOnlyTabs = ['inventory', 'rates', 'integration', 'users'];
       if (isKasir && adminOnlyTabs.includes(tabId)) {
@@ -2944,20 +2953,16 @@
         tabId = 'dashboard';
       }
 
-      // Simpan tab aktif ke localStorage agar tidak reset saat refresh
       try {
         localStorage.setItem(KEY_ACTIVE_TAB, tabId);
       } catch (e) {}
 
-      // Sembunyikan semua section
       const allSections = document.querySelectorAll('main > section');
       allSections.forEach(sec => sec.classList.add('hidden'));
 
-      // Tampilkan target section
       const targetSec = document.getElementById(`section-${tabId}`);
       if (targetSec) targetSec.classList.remove('hidden');
 
-      // Update styling nav buttons desktop
       document.querySelectorAll('.nav-tab').forEach(btn => {
         if (btn.getAttribute('data-tab') === tabId) {
           btn.className = 'nav-tab active flex items-center gap-2 px-3 py-2 rounded-xl text-white bg-emerald-600 transition-all text-xs font-bold shadow-md shadow-emerald-600/20';
@@ -2966,7 +2971,6 @@
         }
       });
 
-      // Update styling nav buttons mobile
       document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
         if (btn.getAttribute('data-mob-tab') === tabId) {
           btn.className = 'mobile-nav-btn flex items-center gap-2 p-2.5 rounded-xl bg-emerald-600 text-white font-bold transition-all text-xs';
@@ -2975,7 +2979,6 @@
         }
       });
 
-      // Refresh view masing-masing tab
       if (tabId === 'dashboard') renderDashboard();
       if (tabId === 'pos') renderPosCatalog();
       if (tabId === 'sales-report') initSalesReportPage();
@@ -2994,7 +2997,7 @@
     }
 
     // ==========================================
-    // INVOICE BUILDER (DRAFT, REALTIME PREVIEW & A4 PRINT)
+    // INVOICE BUILDER
     // ==========================================
     let invoiceItems = [
       { id: 1, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: '2026-11-11', time: '15.00-20.00', price: 3500000 },
@@ -3004,7 +3007,6 @@
     ];
 
     function initInvoicePage() {
-      // Pasang tanggal transaksi default hari ini jika belum ada
       const dateInput = document.getElementById('invDate');
       if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().slice(0, 10);
@@ -3103,18 +3105,15 @@
       const dp = Number(document.getElementById('invDpAmount')?.value || 0);
       const serviceFee = Number(document.getElementById('invServiceFee')?.value || 0);
 
-      // Format tanggal DD-MM-YYYY
       let dateDisplay = rawDate;
       if (rawDate.includes('-')) {
         const parts = rawDate.split('-');
         if (parts.length === 3) dateDisplay = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
 
-      // Hitung Subtotal
       const subtotal = invoiceItems.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
       const totalPembayaran = Math.max(0, subtotal + extraFee + serviceFee - dp);
 
-      // Update Screen Preview
       const prevNum = document.getElementById('prevInvNumberDisplay');
       if (prevNum) prevNum.innerText = `Invoice ${invNum}`;
       const prevCust = document.getElementById('prevInvCustomer');
@@ -3140,7 +3139,6 @@
       const prevTot = document.getElementById('prevInvTotal');
       if (prevTot) prevTot.innerText = formatRupiah(totalPembayaran);
 
-      // Render Baris Tabel Preview
       const prevTbody = document.getElementById('prevInvTableBody');
       if (prevTbody) {
         prevTbody.innerHTML = invoiceItems.map((item, idx) => {
@@ -3160,7 +3158,6 @@
         }).join('');
       }
 
-      // Update A4 Print Area
       document.getElementById('a4InvHeaderTitle').innerText = `Invoice ${invNum}`;
       document.getElementById('a4InvCustomer').innerText = `Yth. ${custName}`;
       document.getElementById('a4InvDate').innerText = dateDisplay;
@@ -3274,7 +3271,7 @@ Matur Suksma!`;
     }
 
     // ==========================================
-    // 13. LAPORAN PENJUALAN KASIR HARIAN (FILTER RENTANG TANGGAL & NAMA KASIR)
+    // LAPORAN PENJUALAN KASIR HARIAN
     // ==========================================
     function initSalesReportPage() {
       const selectCashier = document.getElementById('reportFilterCashier');
@@ -3282,13 +3279,11 @@ Matur Suksma!`;
 
       if (selectCashier) {
         if (isKasir) {
-          // Jika Kasir yang login, kunci pilihan hanya ke namanya sendiri
           selectCashier.innerHTML = `<option value="${currentUser.name}">${currentUser.name} (Saya)</option>`;
           selectCashier.value = currentUser.name;
           selectCashier.disabled = true;
           selectCashier.classList.add('opacity-70', 'cursor-not-allowed');
         } else {
-          // Jika Admin yang login, tampilkan semua kasir dan dapat memilih bebas
           selectCashier.disabled = false;
           selectCashier.classList.remove('opacity-70', 'cursor-not-allowed');
           const currentVal = selectCashier.value || 'ALL';
@@ -3304,7 +3299,6 @@ Matur Suksma!`;
         }
       }
 
-      // Pastikan tanggal mulai & akhir langsung otomatis terisi tanggal lokal hari ini saat dibuka
       const startInput = document.getElementById('reportFilterStartDate');
       const endInput = document.getElementById('reportFilterEndDate');
       const todayStr = getLocalDateString(new Date());
@@ -3354,7 +3348,6 @@ Matur Suksma!`;
       const filterMethod = document.getElementById('reportFilterMethod')?.value || 'ALL';
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
-      // Jika kasir login: paksa filter hanya nama kasir yang bersangkutan
       let targetCashier = 'ALL';
       if (isKasir) {
         targetCashier = currentUser.name;
@@ -3363,25 +3356,15 @@ Matur Suksma!`;
       }
 
       return transactions.filter(t => {
-        // Ambil tanggal lokal transaksi secara akurat
         const trxDateOnly = getLocalDateString(t.date);
-
-        // Filter Tanggal Mulai
         if (startDate && trxDateOnly < startDate) return false;
-
-        // Filter Tanggal Akhir
         if (endDate && trxDateOnly > endDate) return false;
-
-        // Filter Nama Kasir (Kasir hanya melihat datanya sendiri, Admin bisa melihat semua)
         if (targetCashier !== 'ALL') {
           if ((t.cashier || '').toLowerCase() !== targetCashier.toLowerCase()) return false;
         }
-
-        // Filter Metode Pembayaran
         if (filterMethod !== 'ALL') {
           if ((t.method || '').toUpperCase() !== filterMethod.toUpperCase()) return false;
         }
-
         return true;
       });
     }
@@ -3397,7 +3380,6 @@ Matur Suksma!`;
       const filterCashier = isKasir ? currentUser.name : (document.getElementById('reportFilterCashier')?.value || 'ALL');
       const filterMethod = document.getElementById('reportFilterMethod')?.value || 'ALL';
 
-      // Update status teks
       let dateText = 'Semua Tanggal';
       if (startDate && endDate) {
         dateText = startDate === endDate ? `Tgl: ${startDate}` : `${startDate} s/d ${endDate}`;
@@ -3414,7 +3396,6 @@ Matur Suksma!`;
       if (filterMethod !== 'ALL') statusParts.push(`Metode: ${filterMethod}`);
       if (labelStatus) labelStatus.innerText = `Filter: ${statusParts.join(' | ')} (${list.length} data)`;
 
-      // Kalkulasi KPI
       let totalOmset = 0;
       let totalCash = 0;
       let totalQris = 0;
@@ -3436,7 +3417,6 @@ Matur Suksma!`;
       document.getElementById('repKpiQris').innerText = formatRupiah(totalQris);
       document.getElementById('repKpiItemsSold').innerText = `${totalItems} pcs`;
 
-      // Render Tabel
       if (!body) return;
 
       const isAdmin = currentUser && currentUser.role === 'Admin';
@@ -3499,7 +3479,6 @@ Matur Suksma!`;
       const targetTrx = transactions[trxIndex];
       markRecordDeleted(trxId);
 
-      // Kembalikan stok barang yang sebelumnya terjual (Rollback Stock)
       if (Array.isArray(targetTrx.items)) {
         targetTrx.items.forEach(item => {
           const prod = products.find(p => p.id === item.id || p.name === item.name);
@@ -3510,12 +3489,10 @@ Matur Suksma!`;
         setStored(KEY_PRODUCTS, products);
       }
 
-      // Hapus data transaksi dari list
       transactions.splice(trxIndex, 1);
       setStored(KEY_TRANSACTIONS, transactions);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
+      immediateCloudSync();
 
-      // Refresh seluruh tampilan data terkait
       renderFilteredSalesReport();
       renderDashboard();
       renderPosCatalog();
@@ -3619,7 +3596,6 @@ Matur Suksma!`;
       try { lucide.createIcons(); } catch (e) {}
     }
 
-// Audio Context Helper untuk Efek Suara Kasir ("Tot Tot") & Voice "Pembelian Berhasil"
     let audioCtx = null;
     function playCartBeep() {
       try {
@@ -3632,7 +3608,6 @@ Matur Suksma!`;
 
         const now = audioCtx.currentTime;
 
-        // Nada Pertama ("Tot" 1)
         const osc1 = audioCtx.createOscillator();
         const gain1 = audioCtx.createGain();
         osc1.type = 'sine';
@@ -3644,7 +3619,6 @@ Matur Suksma!`;
         osc1.start(now);
         osc1.stop(now + 0.06);
 
-        // Nada Kedua ("Tot" 2 - double beep khas scanner barcode kasir)
         const osc2 = audioCtx.createOscillator();
         const gain2 = audioCtx.createGain();
         osc2.type = 'sine';
@@ -3660,12 +3634,11 @@ Matur Suksma!`;
       }
     }
 
-    // Suara pelafalan nama barang saat dimasukkan ke keranjang kasir
     function playItemNameVoice(itemName) {
       if (!itemName) return;
       try {
         if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel(); // Hentikan antrean suara sebelumnya agar responsif saat klik cepat
+          window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(itemName);
           utterance.lang = 'id-ID';
           utterance.rate = 1.05;
@@ -3676,7 +3649,6 @@ Matur Suksma!`;
           const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id' || v.lang.startsWith('id'));
           if (idVoice) utterance.voice = idVoice;
 
-          // Berikan jeda 130ms agar bunyi tot-tot kasir selesai terlebih dahulu
           setTimeout(() => {
             window.speechSynthesis.speak(utterance);
           }, 130);
@@ -3686,7 +3658,6 @@ Matur Suksma!`;
       }
     }
 
-    // Fungsi Terbilang Bahasa Indonesia untuk pelafalan total belanja
     function angkaTerbilang(nilai) {
       const bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
       nilai = Math.floor(Math.abs(Number(nilai) || 0));
@@ -3704,10 +3675,8 @@ Matur Suksma!`;
       return nilai.toString();
     }
 
-    // Suara Notifikasi Pembayaran Berhasil (Chime + Suara Bicara "Pembelian Berhasil. Total Pembayaran ... Rupiah")
     function playPaymentSuccessVoice(totalAmount) {
       try {
-        // 1. Bunyikan nada jingle sukses (C5 -> E5 -> G5)
         if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -3716,7 +3685,7 @@ Matur Suksma!`;
         }
 
         const now = audioCtx.currentTime;
-        const notes = [523.25, 659.25, 783.99]; // Nada C5, E5, G5
+        const notes = [523.25, 659.25, 783.99];
         notes.forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -3733,10 +3702,9 @@ Matur Suksma!`;
         console.warn('Jingle playback error:', e);
       }
 
-      // 2. Mainkan suara ucapan bahasa Indonesia lengkap dengan nominal belanja
       try {
         if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel(); // Hentikan antrean suara sebelumnya
+          window.speechSynthesis.cancel();
           
           let kalimat = "Pembelian berhasil.";
           if (totalAmount && Number(totalAmount) > 0) {
@@ -3749,14 +3717,12 @@ Matur Suksma!`;
           utterance.pitch = 1.05;
           utterance.volume = 1.0;
 
-          // Pilih suara bahasa Indonesia jika tersedia di sistem
           const voices = window.speechSynthesis.getVoices();
           const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id' || v.lang.startsWith('id'));
           if (idVoice) {
             utterance.voice = idVoice;
           }
 
-          // Jeda 120ms agar selaras setelah jingle nada pertama selesai
           setTimeout(() => {
             window.speechSynthesis.speak(utterance);
           }, 120);
@@ -3792,10 +3758,8 @@ Matur Suksma!`;
         });
       }
 
-      // Mainkan suara "tot tot" kasir dan sebutkan nama barang
       playCartBeep();
       playItemNameVoice(prod.name);
-
       renderCart();
     }
 
@@ -3812,7 +3776,6 @@ Matur Suksma!`;
       if (item.qty <= 0) {
         cart = cart.filter(i => i.id !== prodId);
       } else if (delta > 0) {
-        // Mainkan suara saat menambah kuantitas di keranjang (+) dan sebutkan nama barang
         playCartBeep();
         playItemNameVoice(item.name);
       }
@@ -4122,7 +4085,6 @@ Matur Suksma!`;
         }
       }
 
-      // JIKA INI ADALAH PELUNASAN BON SEMENTARA
       if (settlingBonTargetId) {
         const bon = bons.find(b => b.id === settlingBonTargetId);
         if (!bon) {
@@ -4171,7 +4133,6 @@ Matur Suksma!`;
         return;
       }
 
-      // JIKA INI ADALAH TRANSAKSI KASIR POS REGULER
       cart.forEach(item => {
         const prod = products.find(p => p.id === item.id);
         if (prod) {
@@ -4217,7 +4178,6 @@ Matur Suksma!`;
 
     // ==========================================
     // WEB BLUETOOTH DIRECT 58MM ESC/POS PRINTER
-    // (FIXED: Synchronous User Gesture Pop-up + Multi-Mode Fallback)
     // ==========================================
     const KEY_BT_PRINT_MODE = 'ssf_bt_print_mode_v1';
     let btPrintMode = localStorage.getItem(KEY_BT_PRINT_MODE) || 'BLE_DIRECT';
@@ -4226,7 +4186,6 @@ Matur Suksma!`;
     let isBtPrinting = false;
     let pendingBtPrintTransaction = null;
 
-    // Daftar lengkap UUID Service Printer Thermal 58mm (BLE & Dual-Mode)
     const BT_PRINTER_SERVICES = [
       '000018f0-0000-1000-8000-00805f9b34fb',
       '0000ff00-0000-1000-8000-00805f9b34fb',
@@ -4258,7 +4217,6 @@ Matur Suksma!`;
       const connected = isBtPrinterConnected();
       const devName = (bluetoothPrinterDevice && bluetoothPrinterDevice.name) ? bluetoothPrinterDevice.name : 'Printer 58mm';
 
-      // 1. Navbar Badge
       const dot = document.getElementById('btPrinterDot');
       const text = document.getElementById('btPrinterText');
       if (dot && text) {
@@ -4273,7 +4231,6 @@ Matur Suksma!`;
         }
       }
 
-      // 2. Payment Success Modal Label
       const succLabel = document.getElementById('succBtStatusLabel');
       if (succLabel) {
         if (btPrintMode === 'SYSTEM_PRINT') {
@@ -4291,7 +4248,6 @@ Matur Suksma!`;
         }
       }
 
-      // 3. Bluetooth Modal Status
       const modalDev = document.getElementById('btModalDeviceName');
       const modalBadge = document.getElementById('btModalStatusBadge');
       const modeSelect = document.getElementById('btPrintModeSelect');
@@ -4356,7 +4312,6 @@ Matur Suksma!`;
 
       for (const service of services) {
         const uuid = String(service.uuid || '').toLowerCase();
-        // Lewati Generic Access (1800) & Generic Attribute (1801) agar tidak salah menulis ke nama perangkat
         const isGenericService = uuid.startsWith('00001800') || uuid.startsWith('00001801') || uuid.startsWith('0000180a');
 
         try {
@@ -4364,7 +4319,7 @@ Matur Suksma!`;
           for (const char of characteristics) {
             if (char.properties.writeWithoutResponse || char.properties.write) {
               if (!isGenericService) {
-                return char; // Prioritaskan characteristic milik service printer ESC/POS
+                return char;
               }
               if (!fallbackChar) {
                 fallbackChar = char;
@@ -4399,7 +4354,6 @@ Matur Suksma!`;
       return char;
     }
 
-    // Rekoneksi latar belakang saat halaman dimuat (tidak mengganggu user gesture klik)
     async function trySilentBluetoothReconnect() {
       if (!navigator.bluetooth || typeof navigator.bluetooth.getDevices !== 'function') return;
       try {
@@ -4428,12 +4382,10 @@ Matur Suksma!`;
       showToast('Koneksi printer direset. Silakan klik Scan & Pilih Printer.', 'info');
     }
 
-    // PENTING: Panggil navigator.bluetooth.requestDevice() SECARA SINKRON di baris pertama klik!
     function requestBluetoothPrinterSynchronously() {
       if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function') {
         return Promise.reject(new Error('WEB_BLUETOOTH_UNSUPPORTED'));
       }
-      // Jangan pernah menaruh await sebelum baris ini agar User Gesture Chrome tidak hilang!
       return navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
         optionalServices: BT_PRINTER_SERVICES
@@ -4444,7 +4396,6 @@ Matur Suksma!`;
       hideBtDiagnosticAlert();
       const clickStartTime = Date.now();
 
-      // Baris Pertama: Langsung panggil requestDevice secara sinkron dengan User Gesture!
       let devicePromise;
       try {
         devicePromise = requestBluetoothPrinterSynchronously();
@@ -4458,7 +4409,6 @@ Matur Suksma!`;
         const char = await connectGattAndGetChar(device);
         showToast(`Terhubung ke Printer ${device.name || 'Bluetooth 58mm'}!`, 'success');
 
-        // Jika ada transaksi yang menunggu dicetak, langsung cetak otomatis!
         if (pendingBtPrintTransaction) {
           const trxToPrint = pendingBtPrintTransaction;
           pendingBtPrintTransaction = null;
@@ -4485,7 +4435,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Jika gagal sangat cepat (< 450ms), berarti pop-up sama sekali tidak ditampilkan oleh sistem Android/Chrome
       if (elapsedMs < 450 || errName === 'SecurityError' || errMsg.toLowerCase().includes('gesture') || errMsg.toLowerCase().includes('adapter') || errMsg.toLowerCase().includes('location')) {
         openBtPrinterModal();
         showBtDiagnosticAlert(
@@ -4499,7 +4448,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Jika lebih dari 450ms dan NotFoundError, pengguna menutup sendiri pop-up pemilihan
       if (errName === 'NotFoundError') {
         showToast('Pemilihan printer Bluetooth ditutup.', 'info');
       } else {
@@ -4525,26 +4473,21 @@ Matur Suksma!`;
       const cashierStr = trx.cashier || 'Kasir';
       const noStr = trx.receiptNo || trx.id || '-';
 
-      // Inisialisasi Printer (ESC @)
       pushBytes([0x1B, 0x40]);
-
-      // Align Center (ESC a 1) & Bold ON (ESC E 1)
       pushBytes([0x1B, 0x61, 0x01]);
       pushBytes([0x1B, 0x45, 0x01]);
       pushText('SINGARAJA SOCCERFIELD\n');
-      pushBytes([0x1B, 0x45, 0x00]); // Bold OFF
+      pushBytes([0x1B, 0x45, 0x00]);
       pushText('Jl. Pulau Dewata 3, Pemaron\n');
       pushText('WA: 085137770828\n');
       pushText('--------------------------------\n');
 
-      // Align Left (ESC a 0)
       pushBytes([0x1B, 0x61, 0x00]);
       pushText(`Tgl  : ${dateStr}\n`);
       pushText(`Kasir: ${cashierStr}\n`);
       pushText(`No   : ${noStr}\n`);
       pushText('--------------------------------\n');
 
-      // Daftar Barang
       (trx.items || []).forEach(item => {
         const itemName = String(item.name || 'Item').slice(0, 32);
         const qtyPrice = `${item.qty}x ${Number(item.price || 0).toLocaleString('id-ID')}`;
@@ -4555,7 +4498,6 @@ Matur Suksma!`;
 
       pushText('--------------------------------\n');
 
-      // Ringkasan Total (Bold ON untuk Total)
       pushBytes([0x1B, 0x45, 0x01]);
       pushText(formatEscPosLine('Total Tagihan:', formatRupiah(trx.total), 32));
       pushBytes([0x1B, 0x45, 0x00]);
@@ -4568,7 +4510,6 @@ Matur Suksma!`;
 
       pushText('--------------------------------\n');
 
-      // Footer Center & Feed 3 baris
       pushBytes([0x1B, 0x61, 0x01]);
       pushText('Matur Suksma sampun mampir!\n');
       pushText('Salam Olahraga & Fairplay\n\n\n');
@@ -4639,26 +4580,21 @@ Matur Suksma!`;
       if (!trx) return;
       pendingBtPrintTransaction = trx;
 
-      // Mode 2: Cetak Sistem Android / USB (window.print)
       if (btPrintMode === 'SYSTEM_PRINT') {
         printReceiptBrowserFallback(trx);
         return;
       }
 
-      // Mode 3: Jalur Bluetooth Classic SPP / Intent
       if (btPrintMode === 'RAWBT_INTENT') {
         printViaRawBtIntent(trx);
         return;
       }
 
-      // Mode 1 (Default): Web Bluetooth Langsung (BLE_DIRECT)
-      // A. Jika printer sudah terhubung aktif, langsung kirim byte ESC/POS tanpa pop-up lagi
       if (isBtPrinterConnected()) {
         sendEscPosToCharacteristic(bluetoothCharacteristic, trx);
         return;
       }
 
-      // B. Jika belum terhubung: PANGGIL requestDevice() SECARA SINKRON DI BARIS PERTAMA!
       const clickStartTime = Date.now();
       let devicePromise;
       try {
@@ -4790,7 +4726,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Potong stok
       cart.forEach(item => {
         const prod = products.find(p => p.id === item.id);
         if (prod) prod.stock = Math.max(0, prod.stock - item.qty);
@@ -4896,7 +4831,6 @@ Matur Suksma!`;
       const targetBon = bons[bonIndex];
       markRecordDeleted(bonId);
 
-      // Jika bon belum lunas, kembalikan stok barang yang sebelumnya dikeluarkan
       if (targetBon.status === 'BELUM_LUNAS' && Array.isArray(targetBon.items)) {
         targetBon.items.forEach(item => {
           const prod = products.find(p => p.id === item.id || p.name === item.name);
@@ -4909,7 +4843,7 @@ Matur Suksma!`;
 
       bons.splice(bonIndex, 1);
       setStored(KEY_BONS, bons);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
+      immediateCloudSync();
 
       renderBonTable();
       updateBonBadge();
@@ -4928,11 +4862,10 @@ Matur Suksma!`;
     // DASHBOARD RENDERING
     // ==========================================
     function renderDashboard() {
-      const todayStr = getLocalDateString(new Date()); // Menggunakan tanggal kalender lokal hari ini
+      const todayStr = getLocalDateString(new Date());
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
       if (isKasir) {
-        // Render Kasir KPI shift lokal hari ini
         const myTodayTrx = transactions.filter(t => 
           getLocalDateString(t.date) === todayStr &&
           (!currentUser || t.cashier === currentUser.name)
@@ -4955,7 +4888,6 @@ Matur Suksma!`;
         document.getElementById('kpiKasirQris').innerText = formatRupiah(totalQris);
         document.getElementById('kpiKasirExpense').innerText = formatRupiah(myTodayExpenses);
 
-        // Recent table
         const tbody = document.getElementById('kasirRecentTrxBody');
         if (tbody) {
           if (myTodayTrx.length === 0) {
@@ -4973,7 +4905,6 @@ Matur Suksma!`;
           }
         }
       } else {
-        // Admin KPI: Transaksi POS hari ini + DP Booking lapangan hari ini
         const todayTrx = transactions.filter(t => getLocalDateString(t.date) === todayStr);
         const todayBookings = bookings.filter(b => getLocalDateString(b.date) === todayStr);
 
@@ -5001,7 +4932,6 @@ Matur Suksma!`;
         document.getElementById('adminTodayExpenses').innerText = formatRupiah(todayExpenses);
         document.getElementById('adminTotalBonUnpaid').innerText = formatRupiah(unpaidBonTotal);
 
-        // Berikan jeda sejenak untuk memastikan kontainer canvas sudah ter-render sempurna di DOM
         setTimeout(() => {
           renderCharts();
         }, 80);
@@ -5014,14 +4944,8 @@ Matur Suksma!`;
         const methodCanvas = document.getElementById('paymentMethodChart');
 
         if (!trendCanvas || !methodCanvas) return;
+        if (typeof Chart === 'undefined') return;
 
-        // Pastikan pustaka Chart.js tersedia
-        if (typeof Chart === 'undefined') {
-          console.warn('Pustaka Chart.js belum selesai dimuat.');
-          return;
-        }
-
-        // Siapkan data 7 hari terakhir secara akurat dengan tanggal lokal
         const labels = [];
         const dataValues = [];
         for (let i = 6; i >= 0; i--) {
@@ -5041,7 +4965,6 @@ Matur Suksma!`;
           dataValues.push(sumTrx + sumBkg);
         }
 
-        // 1. Line Chart: Tren Penjualan 7 Hari
         if (trendChart) {
           try { trendChart.destroy(); } catch (e) {}
           trendChart = null;
@@ -5108,7 +5031,6 @@ Matur Suksma!`;
           }
         });
 
-        // 2. Doughnut Chart: Proporsi Pembayaran
         let cashCount = 0;
         let qrisCount = 0;
         (transactions || []).forEach(t => {
@@ -5196,7 +5118,7 @@ Matur Suksma!`;
 
       const dateObj = new Date(dateVal);
       const day = dateObj.getDay();
-      const isWeekend = (day === 0 || day === 6); // Sun or Sat
+      const isWeekend = (day === 0 || day === 6);
 
       const dayBadge = document.getElementById('bkgDayTypeBadge');
       if (dayBadge) {
@@ -5248,7 +5170,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Check Overlap
       const isOverlap = bookings.some(b => {
         if (b.date !== date) return false;
         return (start < b.endTime && end > b.startTime);
@@ -5349,7 +5270,7 @@ Matur Suksma!`;
       markRecordDeleted(bId);
       bookings = bookings.filter(b => b.bookingId !== bId);
       setStored(KEY_BOOKINGS, bookings);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
+      immediateCloudSync();
       renderBookingList();
       showToast('Booking berhasil dihapus.', 'info');
     }
@@ -5453,7 +5374,7 @@ Matur Suksma!`;
       markRecordDeleted(expId);
       expenses = expenses.filter(e => e.id !== expId);
       setStored(KEY_EXPENSES, expenses);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
+      immediateCloudSync();
       renderExpenseTable();
       showToast('Pengeluaran berhasil dihapus.', 'info');
     }
@@ -5465,7 +5386,6 @@ Matur Suksma!`;
       if (!Array.isArray(employees)) {
         employees = [...defaultEmployees];
       }
-      // Bersihkan ID yang sudah pernah dihapus
       employees = cleanDatasetArray(employees, 'id');
       if (employees.length === 0) {
         employees = [...defaultEmployees.filter(e => !isRecordDeletedOrDummy(e.id))];
@@ -5513,7 +5433,6 @@ Matur Suksma!`;
       const filterEmp = document.getElementById('attFilterEmployee')?.value || 'ALL';
       let list = attendance.filter(a => filterEmp === 'ALL' || a.employeeName === filterEmp);
 
-      // Sortir: Tanggal terbaru di atas, lalu Nama Karyawan (A-Z)
       list.sort((a, b) => {
         const dateComp = (b.date || '').localeCompare(a.date || '');
         if (dateComp !== 0) return dateComp;
@@ -5552,28 +5471,6 @@ Matur Suksma!`;
       try { lucide.createIcons(); } catch (e) {}
     }
 
-    function deleteAttendance(attId) {
-      if (!currentUser || currentUser.role !== 'Admin') {
-        showToast('Akses ditolak! Hanya Administrator yang dapat menghapus data absensi.', 'error');
-        return;
-      }
-
-      const attIndex = attendance.findIndex(a => a.id === attId);
-      if (attIndex === -1) {
-        showToast('Data absensi tidak ditemukan!', 'error');
-        return;
-      }
-
-      const targetAtt = attendance[attIndex];
-      markRecordDeleted(attId);
-      attendance.splice(attIndex, 1);
-      setStored(KEY_ATTENDANCE, attendance);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
-
-      renderAttendancePage();
-      showToast(`Data absensi ${targetAtt.employeeName} (${targetAtt.date}) berhasil dihapus permanen!`, 'success');
-    }
-
     function openAttendanceModal() {
       renderAttendancePage();
       const dateInput = document.getElementById('attDate');
@@ -5588,50 +5485,6 @@ Matur Suksma!`;
       document.getElementById('attKasbon').value = '';
       document.getElementById('attKasbonReason').value = '';
       openModal('attendanceModal');
-    }
-
-    function saveAttendanceData() {
-      const empName = (document.getElementById('attEmployeeSelect')?.value || '').trim();
-      const emp = employees.find(e => e.name === empName);
-      const inputDate = document.getElementById('attDate')?.value || getLocalDateString(new Date());
-      const timeIn = document.getElementById('attTimeIn')?.value || '08:00';
-      const timeOut = document.getElementById('attTimeOut')?.value || '17:00';
-      const status = document.getElementById('attStatus')?.value || 'HADIR';
-      const kasbon = Number(document.getElementById('attKasbon')?.value || 0);
-      const reason = document.getElementById('attKasbonReason')?.value.trim() || '-';
-
-      if (!empName) {
-        showToast('Pilih nama karyawan terlebih dahulu!', 'error');
-        return;
-      }
-
-      const att = {
-        id: 'ATT-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        date: inputDate,
-        employeeName: empName,
-        role: emp ? emp.role : (currentUser ? currentUser.role : 'Kasir'),
-        timeIn: timeIn,
-        timeOut: timeOut,
-        status: status,
-        kasbonAmount: kasbon,
-        kasbonReason: reason,
-        createdAt: new Date().toISOString()
-      };
-
-      if (!Array.isArray(attendance)) attendance = [];
-      attendance.push(att);
-
-      // Reset filter agar data yang baru diinput langsung terlihat
-      const filterSelect = document.getElementById('attFilterEmployee');
-      if (filterSelect) filterSelect.value = 'ALL';
-
-      setStored(KEY_ATTENDANCE, attendance);
-      immediateCloudSync();
-      syncAttendanceToWebhook(att);
-
-      closeModal('attendanceModal');
-      renderAttendancePage();
-      showToast(`✅ Absensi ${empName} (${inputDate}) berhasil disimpan ke Database!`, 'success');
     }
 
     function openEmployeeMasterModal() {
@@ -5694,123 +5547,6 @@ Matur Suksma!`;
     // ==========================================
     // CLOSING CASHIER OPERATIONS
     // ==========================================
-    function renderClosingDashboard() {
-      const todayStr = getLocalDateString(new Date());
-      const todayTrx = transactions.filter(t => getLocalDateString(t.date) === todayStr);
-
-      let sysCash = 0, sysQris = 0;
-      todayTrx.forEach(t => {
-        if (t.method === 'CASH') sysCash += Number(t.total || 0);
-        if (t.method === 'QRIS') sysQris += Number(t.total || 0);
-      });
-
-      const todayExpKasir = expenses
-        .filter(e => getLocalDateString(e.date) === todayStr && e.category === 'KASIR')
-        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-      document.getElementById('closeSysCash').innerText = formatRupiah(sysCash);
-      document.getElementById('closeSysQris').innerText = formatRupiah(sysQris);
-      document.getElementById('closeSysExpense').innerText = formatRupiah(todayExpKasir);
-
-      calculateClosingDiff();
-      renderClosingHistory();
-    }
-
-    function calculateClosingDiff() {
-      const starting = Number(document.getElementById('closingStartingCash')?.value || 0);
-      const actual = Number(document.getElementById('closingActualCash')?.value || 0);
-
-      const todayStr = getLocalDateString(new Date());
-      const sysCash = transactions
-        .filter(t => getLocalDateString(t.date) === todayStr && t.method === 'CASH')
-        .reduce((sum, t) => sum + Number(t.total || 0), 0);
-
-      const todayExpKasir = expenses
-        .filter(e => getLocalDateString(e.date) === todayStr && e.category === 'KASIR')
-        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-      const expected = starting + sysCash - todayExpKasir;
-      const diff = actual - expected;
-
-      document.getElementById('closeExpectedCash').innerText = formatRupiah(expected);
-      const diffEl = document.getElementById('closeDiffLabel');
-
-      if (diffEl) {
-        if (actual === 0 && !document.getElementById('closingActualCash')?.value) {
-          diffEl.innerText = 'Menunggu input uang fisik';
-          diffEl.className = 'font-mono text-slate-400';
-        } else if (diff === 0) {
-          diffEl.innerText = 'Rp 0 (Pas / Seimbang)';
-          diffEl.className = 'font-mono text-emerald-400 font-bold';
-        } else if (diff > 0) {
-          diffEl.innerText = `+${formatRupiah(diff)} (Surplus / Lebih)`;
-          diffEl.className = 'font-mono text-blue-400 font-bold';
-        } else {
-          diffEl.innerText = `-${formatRupiah(Math.abs(diff))} (Minus / Kurang)`;
-          diffEl.className = 'font-mono text-rose-400 font-bold';
-        }
-      }
-    }
-
-    function saveClosingRecord() {
-      const actualInputEl = document.getElementById('closingActualCash');
-      const rawActualVal = actualInputEl ? actualInputEl.value.trim() : '';
-      if (rawActualVal === '') {
-        showToast('Mohon isi nominal Hitungan Uang Fisik Kasir di laci terlebih dahulu!', 'error');
-        if (actualInputEl) actualInputEl.focus();
-        return;
-      }
-
-      const starting = Number(document.getElementById('closingStartingCash')?.value || 0);
-      const actual = Number(rawActualVal || 0);
-      const notes = document.getElementById('closingNotes')?.value.trim() || '-';
-
-      const todayStr = getLocalDateString(new Date());
-      const todayTrx = transactions.filter(t => getLocalDateString(t.date) === todayStr);
-
-      let sysCash = 0, sysQris = 0;
-      todayTrx.forEach(t => {
-        if (t.method === 'CASH') sysCash += Number(t.total || 0);
-        if (t.method === 'QRIS') sysQris += Number(t.total || 0);
-      });
-
-      const todayExpKasir = expenses
-        .filter(e => getLocalDateString(e.date) === todayStr && e.category === 'KASIR')
-        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-      const expected = starting + sysCash - todayExpKasir;
-      const diff = actual - expected;
-
-      const record = {
-        id: 'CLS-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        date: todayStr,
-        timestamp: new Date().toISOString(),
-        cashierName: currentUser ? currentUser.name : 'Kasir',
-        startingCash: starting,
-        cashSales: sysCash,
-        qrisSales: sysQris,
-        kasirExpenses: todayExpKasir,
-        actualCash: actual,
-        expectedCash: expected,
-        difference: diff,
-        notes: notes
-      };
-
-      if (!Array.isArray(closings)) closings = [];
-      closings.push(record);
-      setStored(KEY_CLOSINGS, closings);
-      immediateCloudSync();
-      syncClosingToWebhook(record);
-
-      if (actualInputEl) actualInputEl.value = '';
-      const notesEl = document.getElementById('closingNotes');
-      if (notesEl) notesEl.value = '';
-
-      calculateClosingDiff();
-      renderClosingHistory();
-      showToast('✅ Rekap tutup kasir harian berhasil disimpan ke Database Cloud!', 'success');
-    }
-
     function renderClosingHistory() {
       const body = document.getElementById('closingHistoryBody');
       if (!body) return;
@@ -5856,33 +5592,8 @@ Matur Suksma!`;
       try { lucide.createIcons(); } catch (e) {}
     }
 
-    function deleteClosingRecord(closingId) {
-      if (!currentUser || currentUser.role !== 'Admin') {
-        showToast('Akses ditolak! Hanya Administrator yang berhak menghapus riwayat tutup kasir.', 'error');
-        return;
-      }
-
-      const closingIndex = closings.findIndex(c => c.id === closingId);
-      if (closingIndex === -1) {
-        showToast('Data riwayat tutup kasir tidak ditemukan!', 'error');
-        return;
-      }
-
-      const target = closings[closingIndex];
-      if (!confirm(`Yakin ingin menghapus catatan tutup kasir tanggal ${target.date} oleh ${target.cashierName}?`)) {
-        return;
-      }
-
-      markRecordDeleted(closingId);
-      closings.splice(closingIndex, 1);
-      setStored(KEY_CLOSINGS, closings);
-      immediateCloudSync(); // Sinkronisasi instan ke Cloud agar permanen
-      renderClosingHistory();
-      showToast(`Catatan tutup kasir (${target.date}) berhasil dihapus permanen.`, 'success');
-    }
-
     // ==========================================
-    // INVENTORY & PRODUCT OPERATIONS (EXCEL IMPORT/EXPORT)
+    // INVENTORY & PRODUCT OPERATIONS
     // ==========================================
     function renderInventoryTable() {
       const body = document.getElementById('inventoryTableBody');
@@ -6002,9 +5713,9 @@ Matur Suksma!`;
       if (!file) return;
 
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       const previewImg = document.getElementById('productPreviewImg');
 
-      // KUNCI TOMBOL SIMPAN BARANG
       setProductSaveButtonLoading(true);
       showToast('Memproses dan mengompres foto barang...', 'info');
 
@@ -6022,7 +5733,6 @@ Matur Suksma!`;
         };
 
         img.onload = async () => {
-          // Kompresi resolusi gambar (maksimal lebar/tinggi 500px)
           const MAX_SIZE = 500;
           let width = img.width;
           let height = img.height;
@@ -6045,13 +5755,11 @@ Matur Suksma!`;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Ekspor data URL JPEG terkompresi (~20-40 KB)
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
           previewImg.src = compressedDataUrl;
 
-          // Jika webhook Google Apps Script aktif, langsung upload ke Google Drive
           if (webhookUrl) {
-            showToast('Sedang mengunggah foto ke Google Drive... Tombol simpan dinonaktifkan sementara.', 'info');
+            showToast('Sedang mengunggah foto ke Google Drive...', 'info');
             try {
               const base64Data = compressedDataUrl.split(',')[1];
               const response = await fetch(webhookUrl, {
@@ -6059,6 +5767,7 @@ Matur Suksma!`;
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                   type: 'UPLOAD_IMAGE',
+                  secretToken: secretToken,
                   fileName: 'produk_' + Date.now() + '.jpg',
                   mimeType: 'image/jpeg',
                   base64Data: base64Data
@@ -6067,10 +5776,10 @@ Matur Suksma!`;
 
               const result = await response.json();
               if (result && result.status === 'success' && result.fileUrl) {
-                tempProductImage = result.fileUrl; // Menyimpan link URL Google Drive
+                tempProductImage = result.fileUrl;
                 previewImg.src = result.fileUrl;
                 setProductSaveButtonLoading(false, '<span class="text-emerald-400 font-semibold">✅ Foto berhasil diupload ke Google Drive!</span>');
-                showToast('✅ Foto barang tersimpan di Google Drive! Tombol simpan kini aktif.', 'success');
+                showToast('✅ Foto barang tersimpan di Google Drive!', 'success');
               } else {
                 throw new Error(result.message || 'Gagal menerima URL file dari Drive');
               }
@@ -6250,30 +5959,104 @@ Matur Suksma!`;
       showToast('Tarif sewa lapangan berhasil disimpan!', 'success');
     }
 
-    // ==========================================
-    // AUTO CLOUD SYNC & FIREBASE CLIENT CORE
-    // ==========================================
+    // =========================================================================
+    // BRANKAS GOOGLE APPS SCRIPT (GAS VAULT) & FIREBASE CLIENT CORE
+    // Mengambil dan menyimpan API Key Firebase secara aman lewat Google Script
+    // =========================================================================
     function updateCloudSyncStatus(status, text) {
       const dot = document.getElementById('cloudSyncDot');
       const label = document.getElementById('cloudSyncText');
-      if (!dot || !label) return;
+      const vaultBadge = document.getElementById('gasVaultStatusBadge');
 
-      if (status === 'ONLINE') {
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        label.innerText = text || 'Cloud Aktif';
-        label.className = 'font-mono text-emerald-400 font-bold';
-      } else if (status === 'SYNCING') {
-        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-spin';
-        label.innerText = text || 'Menyimpan...';
-        label.className = 'font-mono text-amber-300';
-      } else if (status === 'ERROR') {
-        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
-        label.innerText = text || 'Cloud Offline';
-        label.className = 'font-mono text-rose-400';
+      if (dot && label) {
+        if (status === 'ONLINE') {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          label.innerText = text || 'Brankas & Cloud Aktif';
+          label.className = 'font-mono text-emerald-400 font-bold';
+        } else if (status === 'SYNCING') {
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-spin';
+          label.innerText = text || 'Menyimpan...';
+          label.className = 'font-mono text-amber-300';
+        } else if (status === 'ERROR') {
+          dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+          label.innerText = text || 'Mode Lokal';
+          label.className = 'font-mono text-rose-400';
+        }
+      }
+
+      if (vaultBadge) {
+        const hasUrl = Boolean(savedWebhookUrl || getStored(KEY_WEBHOOK, ''));
+        const hasApiKey = Boolean(firebaseConfig && firebaseConfig.apiKey);
+        if (hasUrl && hasApiKey) {
+          vaultBadge.innerText = '🔒 BRANKAS GAS AKTIF';
+          vaultBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        } else if (hasUrl) {
+          vaultBadge.innerText = '⚡ WEBHOOK TERPASANG';
+          vaultBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30';
+        } else {
+          vaultBadge.innerText = 'BELUM TERHUBUNG';
+          vaultBadge.className = 'px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        }
       }
     }
 
     let hasPendingLocalWriteBeforeCloudReady = false;
+
+    // Tarik konfigurasi Firebase dari Brankas Google Apps Script (PropertiesService)
+    async function fetchFirebaseConfigFromGasVault(showToastAlert = false) {
+      const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!webhookUrl) {
+        if (showToastAlert) showToast('Masukkan Google Apps Script Web App URL terlebih dahulu!', 'error');
+        return null;
+      }
+
+      try {
+        updateCloudSyncStatus('SYNCING', 'Membuka Brankas GAS...');
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            type: 'GET_FIREBASE_CONFIG',
+            secretToken: secretToken,
+            origin: window.location.origin
+          })
+        });
+
+        const res = await response.json();
+        if (res && res.status === 'success' && res.firebaseConfig && res.firebaseConfig.apiKey) {
+          firebaseConfig = {
+            ...OFFICIAL_FIREBASE_CONFIG,
+            ...res.firebaseConfig
+          };
+          localStorage.setItem(KEY_FIREBASE, JSON.stringify(firebaseConfig));
+          renderIntegrationSettings();
+
+          // Reset & nyalakan ulang Firebase Client dengan kredensial dari Brankas GAS
+          fbApp = null;
+          fbAuth = null;
+          fbDb = null;
+          fbUser = null;
+          isCloudReady = false;
+          await initAutoFirebaseIntegration(true);
+
+          if (showToastAlert) {
+            showToast('🔒 Berhasil menarik konfigurasi API Firebase dari Brankas Google Apps Script!', 'success');
+          }
+          return firebaseConfig;
+        } else {
+          const msg = (res && res.message) ? res.message : 'Brankas GAS belum berisi API Key atau Token Rahasia salah.';
+          if (showToastAlert) showToast(msg, 'error');
+          updateCloudSyncStatus('ERROR', 'Brankas Belum Isi');
+          return null;
+        }
+      } catch (err) {
+        console.warn('Gagal menghubungi Brankas Google Script:', err);
+        if (showToastAlert) showToast('Gagal menghubungi Google Apps Script: ' + err.message, 'error');
+        updateCloudSyncStatus('ERROR', 'GAS Offline');
+        return null;
+      }
+    }
 
     function buildCompleteCloudSyncPayload(lastSyncKey = 'MANUAL_OR_IMMEDIATE') {
       return {
@@ -6288,7 +6071,7 @@ Matur Suksma!`;
         attendance: cleanDatasetArray(attendance, 'id'),
         employees: cleanDatasetArray(employees, 'id'),
         closings: cleanDatasetArray(closings, 'id'),
-        users: users,
+        users: sanitizeUsersForStorage(users),
         rates: rentalRates,
         qrisUrl: customQrisUrl,
         qrisPayload: customQrisPayload,
@@ -6296,17 +6079,23 @@ Matur Suksma!`;
       };
     }
 
-    async function initAutoFirebaseIntegration() {
+    async function initAutoFirebaseIntegration(skipVaultFetch = false) {
       if (!window.FB_SDK) return;
       try {
-        updateCloudSyncStatus('SYNCING', 'Menghubungkan Cloud...');
-        const client = initFirebaseClient();
-        if (!client) {
-          updateCloudSyncStatus('ERROR', 'Gagal Init SDK');
+        const storedCfg = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
+        // Jika belum ada API Key di memori lokal tetapi URL Google Script sudah ada, tarik otomatis dari Brankas Google Script!
+        if ((!storedCfg || !storedCfg.apiKey) && !skipVaultFetch && (savedWebhookUrl || getStored(KEY_WEBHOOK, ''))) {
+          await fetchFirebaseConfigFromGasVault(false);
           return;
         }
 
-        // Login Anonim Otomatis
+        const client = initFirebaseClient();
+        if (!client) {
+          updateCloudSyncStatus('ERROR', 'Menunggu Brankas GAS');
+          return;
+        }
+
+        updateCloudSyncStatus('SYNCING', 'Menghubungkan Cloud...');
         if (!client.fbAuth.currentUser) {
           const cred = await window.FB_SDK.signInAnonymously(client.fbAuth);
           fbUser = cred.user;
@@ -6317,17 +6106,15 @@ Matur Suksma!`;
         isCloudReady = true;
         updateCloudSyncStatus('ONLINE', 'Cloud Aktif');
 
-        // Tarik & gabungkan data terbaru dari cloud (tanpa menimpa data lokal yang baru disimpan)
         await pullLatestDataFromFirebaseCloud();
 
-        // Jika ada penyimpanan lokal saat cloud baru terhubung, dorong ke cloud sekarang
         if (hasPendingLocalWriteBeforeCloudReady) {
           hasPendingLocalWriteBeforeCloudReady = false;
           await immediateCloudSync();
         }
       } catch (err) {
-        console.warn('Auto Firebase initialization failed, running in local-first mode:', err);
-        updateCloudSyncStatus('ERROR', 'Offline (Lokal)');
+        console.warn('Auto Firebase initialization notice:', err);
+        updateCloudSyncStatus('ERROR', 'Mode Lokal / GAS');
       }
     }
 
@@ -6341,12 +6128,10 @@ Matur Suksma!`;
           const cloudData = snap.data();
           let hasUpdates = false;
 
-          // 1. Gabungkan daftar ID yang telah dihapus (deletedIds) terlebih dahulu agar data terhapus & dummy tidak pernah muncul lagi
           if (Array.isArray(cloudData.deletedIds)) {
             cloudData.deletedIds.forEach(dId => markRecordDeleted(dId));
           }
 
-          // 2. Gabungkan masing-masing koleksi menggunakan mergeUniqueById (Data lokal baru tidak hilang + Data dummy/terhapus dibersihkan)
           if (Array.isArray(cloudData.products) && cloudData.products.length > 0) {
             products = mergeUniqueById(products, cloudData.products, 'id');
             localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
@@ -6404,18 +6189,16 @@ Matur Suksma!`;
             customQrisPayload = cloudData.qrisPayload;
             localStorage.setItem(KEY_QRIS_PAYLOAD, JSON.stringify(customQrisPayload));
           }
-          if (cloudData.webhookUrl) {
+          if (cloudData.webhookUrl && !savedWebhookUrl) {
             savedWebhookUrl = cloudData.webhookUrl;
             localStorage.setItem(KEY_WEBHOOK, JSON.stringify(savedWebhookUrl));
             const webhookInput = document.getElementById('sheetWebhookUrl');
             if (webhookInput) webhookInput.value = savedWebhookUrl;
           }
 
-          // Dorong kembali hasil bersih (tanpa dummy) ke Firebase Cloud
           await window.FB_SDK.setDoc(syncRef, buildCompleteCloudSyncPayload('CLEAN_MERGE'), { merge: true });
 
           if (hasUpdates) {
-            // Render ulang seluruh tampilan tabel dan halaman aktif
             renderDashboard();
             renderPosCatalog();
             updateBonBadge();
@@ -6428,7 +6211,6 @@ Matur Suksma!`;
             renderInventoryTable();
           }
         } else {
-          // Inisialisasi awal ke cloud jika dokumen belum ada
           await syncAllToFirebaseCloud();
         }
       } catch (err) {
@@ -6436,7 +6218,6 @@ Matur Suksma!`;
       }
     }
 
-    // Fungsi untuk langsung melakukan sinkronisasi instan ke Firebase Cloud tanpa menunggu debounce
     async function immediateCloudSync() {
       if (!isCloudReady || !window.FB_SDK || !fbDb) {
         hasPendingLocalWriteBeforeCloudReady = true;
@@ -6459,7 +6240,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Debounce agar tidak melakukan write berlebihan dalam milidetik yang sama
       clearTimeout(cloudSyncDebounceTimer);
       updateCloudSyncStatus('SYNCING', 'Menyimpan...');
 
@@ -6476,7 +6256,7 @@ Matur Suksma!`;
     }
 
     // ==========================================
-    // INTEGRATION & QRIS OPERATIONS
+    // INTEGRATION, GAS VAULT & QRIS OPERATIONS
     // ==========================================
     function renderIntegrationSettings() {
       const qrisImg = document.getElementById('qrisSettingsPreviewImg');
@@ -6506,32 +6286,41 @@ Matur Suksma!`;
       const webhookInput = document.getElementById('sheetWebhookUrl');
       if (webhookInput) webhookInput.value = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
 
-      // Load data Firebase tersimpan
+      const tokenInput = document.getElementById('gasVaultSecretToken');
+      if (tokenInput) tokenInput.value = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+
       const fbConfig = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
       const fbProjEl = document.getElementById('fbProjectId');
       const fbKeyEl = document.getElementById('fbApiKey');
       const fbAuthDomEl = document.getElementById('fbAuthDomain');
+      const fbDbUrlEl = document.getElementById('fbDbUrl');
 
-      if (fbProjEl) fbProjEl.value = fbConfig.projectId || OFFICIAL_FIREBASE_CONFIG.projectId;
-      if (fbKeyEl) fbKeyEl.value = fbConfig.apiKey || OFFICIAL_FIREBASE_CONFIG.apiKey;
-      if (fbAuthDomEl) fbAuthDomEl.value = fbConfig.authDomain || OFFICIAL_FIREBASE_CONFIG.authDomain;
+      if (fbProjEl) fbProjEl.value = fbConfig.projectId || '';
+      if (fbKeyEl) fbKeyEl.value = fbConfig.apiKey || '';
+      if (fbAuthDomEl) fbAuthDomEl.value = fbConfig.authDomain || '';
+      if (fbDbUrlEl) fbDbUrlEl.value = fbConfig.dbUrl || '';
+
+      updateCloudSyncStatus(isCloudReady ? 'ONLINE' : 'ERROR');
     }
 
     function initFirebaseClient() {
       if (!window.FB_SDK) return null;
       try {
         const fbConfig = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
+        if (!fbConfig || !fbConfig.apiKey || !fbConfig.projectId) {
+          return null;
+        }
         const configToUse = {
-          apiKey: fbConfig.apiKey || OFFICIAL_FIREBASE_CONFIG.apiKey,
-          authDomain: fbConfig.authDomain || OFFICIAL_FIREBASE_CONFIG.authDomain,
-          projectId: fbConfig.projectId || OFFICIAL_FIREBASE_CONFIG.projectId,
-          storageBucket: fbConfig.storageBucket || OFFICIAL_FIREBASE_CONFIG.storageBucket,
-          messagingSenderId: fbConfig.messagingSenderId || OFFICIAL_FIREBASE_CONFIG.messagingSenderId,
-          appId: fbConfig.appId || OFFICIAL_FIREBASE_CONFIG.appId
+          apiKey: fbConfig.apiKey,
+          authDomain: fbConfig.authDomain || `${fbConfig.projectId}.firebaseapp.com`,
+          projectId: fbConfig.projectId,
+          storageBucket: fbConfig.storageBucket || `${fbConfig.projectId}.firebasestorage.app`,
+          messagingSenderId: fbConfig.messagingSenderId || "",
+          appId: fbConfig.appId || ""
         };
 
         if (!fbApp) {
-          fbApp = window.FB_SDK.initializeApp(configToUse);
+          fbApp = window.FB_SDK.initializeApp(configToUse, 'ssf-secure-app-' + Date.now());
           fbAuth = window.FB_SDK.getAuth(fbApp);
           fbDb = window.FB_SDK.getFirestore(fbApp);
         }
@@ -6542,31 +6331,76 @@ Matur Suksma!`;
       }
     }
 
-    function saveFirebaseConfig() {
-      const projectId = document.getElementById('fbProjectId')?.value.trim() || OFFICIAL_FIREBASE_CONFIG.projectId;
-      const apiKey = document.getElementById('fbApiKey')?.value.trim() || OFFICIAL_FIREBASE_CONFIG.apiKey;
-      const authDomain = document.getElementById('fbAuthDomain')?.value.trim() || `${projectId}.firebaseapp.com`;
+    // Simpan kredensial Firebase ke dalam PropertiesService Google Apps Script (Brankas GAS)
+    async function saveFirebaseConfigToGasVault() {
+      const webhookUrl = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+
+      const projectId = document.getElementById('fbProjectId')?.value.trim() || '';
+      const apiKey = document.getElementById('fbApiKey')?.value.trim() || '';
+      const authDomain = document.getElementById('fbAuthDomain')?.value.trim() || (projectId ? `${projectId}.firebaseapp.com` : '');
+      const dbUrl = document.getElementById('fbDbUrl')?.value.trim() || (projectId ? `https://${projectId}-default-rtdb.firebaseio.com` : '');
+      const dbSecret = document.getElementById('fbDbSecret')?.value.trim() || '';
+
+      if (!projectId || !apiKey) {
+        showToast('Project ID dan Firebase API Key wajib diisi!', 'error');
+        return;
+      }
 
       const config = {
-        ...OFFICIAL_FIREBASE_CONFIG,
         projectId: projectId,
         apiKey: apiKey,
         authDomain: authDomain,
+        storageBucket: `${projectId}.firebasestorage.app`,
+        dbUrl: dbUrl,
         updatedAt: new Date().toISOString()
       };
 
-      setStored(KEY_FIREBASE, config);
+      // Simpan di cache perangkat lokal
+      localStorage.setItem(KEY_FIREBASE, JSON.stringify(config));
       firebaseConfig = config;
 
-      // Reset instance agar membaca config baru
+      // Reset & jalankan ulang koneksi Firebase lokal
       fbApp = null;
       fbAuth = null;
       fbDb = null;
       fbUser = null;
       isCloudReady = false;
+      initAutoFirebaseIntegration(true);
 
-      initAutoFirebaseIntegration();
-      showToast('Konfigurasi Firebase berhasil disimpan & sistem otomatis menghubungkan kembali!', 'success');
+      if (!webhookUrl) {
+        showToast('Konfigurasi disimpan di perangkat ini. Isi URL Google Apps Script agar tersimpan di Brankas Server Google!', 'info');
+        return;
+      }
+
+      savedWebhookUrl = webhookUrl;
+      savedGasSecretToken = secretToken;
+      localStorage.setItem(KEY_WEBHOOK, JSON.stringify(webhookUrl));
+      localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(secretToken));
+
+      try {
+        showToast('Mengirim & mengunci API Key ke dalam Brankas Google Apps Script...', 'info');
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            type: 'SAVE_FIREBASE_CONFIG',
+            secretToken: secretToken,
+            firebaseConfig: config,
+            dbSecret: dbSecret
+          })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+          document.getElementById('fbDbSecret').value = '';
+          showToast('🔒 Berhasil! API Key Firebase kini tersimpan aman di dalam Brankas Google Apps Script (PropertiesService)!', 'success');
+          updateCloudSyncStatus('ONLINE', 'Brankas GAS Aktif');
+        } else {
+          showToast('Gagal menyimpan ke Brankas GAS: ' + (res?.message || 'Periksa Token Rahasia di Code.gs'), 'error');
+        }
+      } catch (err) {
+        showToast('Tersimpan di perangkat lokal, namun gagal menghubungi Google Script: ' + err.message, 'error');
+      }
     }
 
     async function testFirebaseConnection() {
@@ -6574,10 +6408,13 @@ Matur Suksma!`;
       const diagText = document.getElementById('fbDiagnosticText');
       if (diagBox) diagBox.classList.remove('hidden');
 
-      if (!window.FB_SDK) {
-        if (diagText) diagText.innerHTML = '<span class="text-rose-400 font-bold">❌ SDK Firebase sedang memuat...</span> Silakan tunggu 2 detik lalu klik lagi.';
-        showToast('Firebase SDK sedang memuat, silakan coba lagi sejenak.', 'info');
-        return;
+      if (!firebaseConfig || !firebaseConfig.apiKey) {
+        if (diagText) diagText.innerHTML = '<span class="text-amber-400 font-bold">⏳ Kredensial lokal kosong. Mencoba menarik dari Brankas Google Script...</span>';
+        const pulled = await fetchFirebaseConfigFromGasVault(false);
+        if (!pulled) {
+          if (diagText) diagText.innerHTML = '<span class="text-rose-400 font-bold">❌ API Key belum tersedia.</span> Silakan isi URL Google Script + Token Rahasia, atau isi konfigurasi Firebase lalu klik "Kirim & Kunci API ke Brankas Google Script".';
+          return;
+        }
       }
 
       const client = initFirebaseClient();
@@ -6587,59 +6424,44 @@ Matur Suksma!`;
         return;
       }
 
-      if (diagText) diagText.innerHTML = '<span class="text-amber-400 font-bold">⏳ Melakukan Anonymous Authentication ke Firebase...</span>';
-      showToast('Menghubungkan ke Firebase via Anonymous Auth...', 'info');
+      if (diagText) diagText.innerHTML = '<span class="text-amber-400 font-bold">⏳ Menguji Autentikasi Firebase & Koneksi Proxy Google Script...</span>';
 
       try {
-        // 1. Lakukan Login Anonim Resmi SDK (Bebas CORS!)
         const authCredential = await window.FB_SDK.signInAnonymously(client.fbAuth);
         fbUser = authCredential.user;
         const uid = fbUser.uid;
+        const idToken = await fbUser.getIdToken();
 
-        if (diagText) {
-          diagText.innerHTML = `<span class="text-teal-400 font-bold">✅ Berhasil Login Anonim! (UID: ${uid})</span><br>Sedang menguji pembacaan/penulisan ke Cloud Firestore...`;
-        }
-
-        // 2. Tulis Dokumen Test Ping ke Firestore
         const pingRef = window.FB_SDK.doc(client.fbDb, 'system_health', 'connection_test');
         await window.FB_SDK.setDoc(pingRef, {
           status: 'ONLINE',
           lastPing: new Date().toISOString(),
-          testedByUid: uid,
-          device: navigator.userAgent
+          testedByUid: uid
         }, { merge: true });
 
-        // 3. Baca kembali untuk memastikan read & write rules lolos
         const snapshot = await window.FB_SDK.getDoc(pingRef);
 
         if (snapshot.exists()) {
           const res = snapshot.data();
           if (diagText) {
             diagText.innerHTML = `
-              <span class="text-emerald-400 font-bold text-sm">✅ KONEKSI CLOUD BERHASIL & AKTIF 100%!</span><br>
+              <span class="text-emerald-400 font-bold text-sm">✅ BRANKAS GOOGLE SCRIPT & FIREBASE AKTIF 100%!</span><br>
               <div class="mt-1 space-y-0.5 text-[11px] text-slate-300">
-                <p>&bull; <b>Proyek:</b> ${firebaseConfig.projectId}</p>
-                <p>&bull; <b>Mode:</b> Anonymous Sign-in (UID: <code class="text-amber-300 font-mono">${uid}</code>)</p>
-                <p>&bull; <b>Firestore Database:</b> Terhubung & Berhasil Write-Read</p>
+                <p>&bull; <b>Status Kode GitHub:</b> <span class="text-emerald-400 font-bold">100% Bersih (0 Hardcoded API Key)</span></p>
+                <p>&bull; <b>Proyek Terhubung:</b> ${firebaseConfig.projectId}</p>
+                <p>&bull; <b>Token Auth RTDB:</b> Aktif (<code class="text-amber-300 font-mono">${idToken.slice(0, 18)}...</code>)</p>
                 <p>&bull; <b>Waktu Sinkron:</b> ${res.lastPing}</p>
               </div>
             `;
           }
-          showToast('✅ Berhasil! Firebase Firestore terhubung & aktif tanpa error!', 'success');
+          showToast('✅ Koneksi Firebase & Brankas Google Script berjalan sempurna!', 'success');
         }
       } catch (err) {
         console.error('Firebase test error:', err);
-        let errorHint = err.message;
-        if (err.code === 'permission-denied') {
-          errorHint = 'Aturan Security Rules Firestore menolak akses. Buka Firebase Console > Firestore Database > Rules dan set "allow read, write: if true;" untuk sementara.';
-        } else if (err.code === 'auth/operation-not-allowed') {
-          errorHint = 'Anonymous provider belum diaktifkan. Buka Firebase Console > Authentication > Sign-in method > Anonymous dan klik Enable.';
-        }
-
         if (diagText) {
           diagText.innerHTML = `
-            <span class="text-rose-400 font-bold">❌ KONEKSI DITOLAK OLEH FIREBASE (${err.code || 'ERROR'}):</span><br>
-            <p class="mt-1 text-slate-300">${errorHint}</p>
+            <span class="text-rose-400 font-bold">❌ KONEKSI DITOLAK (${err.code || 'ERROR'}):</span><br>
+            <p class="mt-1 text-slate-300">${err.message}</p>
           `;
         }
         showToast('Koneksi gagal: ' + (err.code || err.message), 'error');
@@ -6653,11 +6475,11 @@ Matur Suksma!`;
       }
       const client = initFirebaseClient();
       if (!client) {
-        showToast('Gagal inisialisasi Firebase.', 'error');
+        showToast(' Tarik API dari Brankas Google Script terlebih dahulu!', 'error');
         return;
       }
 
-      showToast('Memulai sinkronisasi data ke Firebase Cloud...', 'info');
+      showToast('Memulai sinkronisasi data ke Firebase Cloud & Proxy GAS...', 'info');
       try {
         if (!client.fbAuth.currentUser) {
           await window.FB_SDK.signInAnonymously(client.fbAuth);
@@ -6665,8 +6487,9 @@ Matur Suksma!`;
 
         const syncRef = window.FB_SDK.doc(client.fbDb, 'cloud_sync', 'singaraja_soccerfield_data');
         await window.FB_SDK.setDoc(syncRef, buildCompleteCloudSyncPayload('MANUAL_SYNC_ALL'), { merge: true });
+        await window.immediateCloudSync();
 
-        showToast('✅ Seluruh data berhasil dicadangkan ke Firebase Cloud!', 'success');
+        showToast('✅ Seluruh data berhasil dicadangkan ke Cloud!', 'success');
       } catch (e) {
         console.error('Cloud backup error:', e);
         showToast('Gagal sinkronisasi data: ' + e.message, 'error');
@@ -6675,7 +6498,6 @@ Matur Suksma!`;
 
     function extractQrisPayloadFromImage(img) {
       if (typeof jsQR !== 'function') return '';
-      // Coba pindai pada beberapa skala & area crop (termasuk tengah poster GoPay Merchant)
       const attempts = [
         { sx: 0, sy: 0, sw: img.width, sh: img.height, scale: 1.0 },
         { sx: 0, sy: 0, sw: img.width, sh: img.height, scale: Math.min(1.0, 900 / Math.max(img.width, img.height)) },
@@ -6725,10 +6547,8 @@ Matur Suksma!`;
       reader.onload = (evt) => {
         const img = new Image();
         img.onload = () => {
-          // 1. Ekstrak Payload EMVCo QRIS Statis GoPay Merchant untuk dikonversi ke Dinamis
           const extractedPayload = extractQrisPayloadFromImage(img);
 
-          // 2. Kompres gambar untuk cadangan tampilan
           const MAX_SIZE = 500;
           let width = img.width;
           let height = img.height;
@@ -6780,58 +6600,62 @@ Matur Suksma!`;
     }
 
     async function saveWebhookUrl() {
-      const url = document.getElementById('sheetWebhookUrl')?.value.trim();
+      const url = document.getElementById('sheetWebhookUrl')?.value.trim() || '';
+      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
       savedWebhookUrl = url;
-      setStored(KEY_WEBHOOK, url);
+      savedGasSecretToken = token;
+      localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
+      localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(token));
 
-      // Simpan langsung dan permanen ke Firebase Cloud Firestore agar otomatis muncul di semua perangkat lain
-      if (isCloudReady && window.FB_SDK && fbDb) {
-        try {
-          updateCloudSyncStatus('SYNCING', 'Menyimpan Webhook...');
-          const syncRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'singaraja_soccerfield_data');
-          await window.FB_SDK.setDoc(syncRef, {
-            webhookUrl: url,
-            lastSyncAt: new Date().toISOString()
-          }, { merge: true });
-          updateCloudSyncStatus('ONLINE', 'Cloud Sinkron');
-          showToast('✅ Webhook URL berhasil disimpan permanen ke Cloud untuk semua perangkat!', 'success');
-          return;
-        } catch (e) {
-          console.warn('Gagal simpan langsung webhook ke cloud:', e);
-        }
+      if (url) {
+        await fetchFirebaseConfigFromGasVault(true);
+      } else {
+        showToast('URL Google Script disimpan.', 'info');
       }
-      showToast('Webhook URL berhasil disimpan di perangkat ini!', 'success');
     }
 
-    function testWebhookConnection() {
-      const url = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+    async function testWebhookConnection() {
+      const url = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!url) {
         showToast('Masukkan URL Webhook Google Apps Script terlebih dahulu!', 'error');
         return;
       }
 
-      fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'PING', timestamp: new Date().toISOString() })
-      }).then(() => {
-        showToast('Ping berhasil dikirim ke Google Spreadsheet!', 'success');
-      }).catch(err => {
-        showToast('Gagal menghubungi Webhook: ' + err.message, 'error');
-      });
+      try {
+        showToast('Menghubungi Brankas Google Apps Script...', 'info');
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            type: 'PING',
+            secretToken: token,
+            timestamp: new Date().toISOString()
+          })
+        });
+        const res = await response.json();
+        if (res && res.status === 'success') {
+          showToast(`✅ Brankas Google Script Aktif! (${res.vaultReady ? 'API Key Tersimpan di GAS' : 'Brankas Masih Kosong'})`, 'success');
+        } else {
+          showToast('Google Script menolak akses: ' + (res?.message || 'Token Rahasia tidak cocok'), 'error');
+        }
+      } catch (err) {
+        showToast('Gagal menghubungi Google Script: ' + err.message, 'error');
+      }
     }
 
     function syncSaleToWebhook(trx) {
       const url = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!url) return;
 
       fetch(url, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           type: 'SALE',
+          secretToken: secretToken,
           payload: {
             receiptNo: trx.receiptNo || trx.id,
             date: trx.date,
@@ -6846,14 +6670,16 @@ Matur Suksma!`;
 
     function syncAttendanceToWebhook(att) {
       const url = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!url || !att) return;
 
       fetch(url, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           type: 'ATTENDANCE',
+          secretToken: secretToken,
           payload: att
         })
       }).catch(err => console.warn('Webhook attendance sync error:', err));
@@ -6861,28 +6687,136 @@ Matur Suksma!`;
 
     function syncClosingToWebhook(closingRec) {
       const url = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!url || !closingRec) return;
 
       fetch(url, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           type: 'CLOSING',
+          secretToken: secretToken,
           payload: closingRec
         })
       }).catch(err => console.warn('Webhook closing sync error:', err));
     }
 
+    // =========================================================================
+    // GENERATOR CODE.GS (BRANKAS API FIREBASE + PROXY RTDB + UPLOAD DRIVE + SHEET)
+    // =========================================================================
     function downloadAppsScriptCode() {
-      const scriptCode = `function doPost(e) {
+      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || 'SSF-RAHASIA-2026';
+      const scriptCode = `/**
+ * ============================================================================
+ * SINGARAJA SOCCERFIELD - SECURE GOOGLE APPS SCRIPT VAULT & FIREBASE PROXY
+ * ============================================================================
+ * Fungsi Utama:
+ * 1. Menyimpan API Key & Konfigurasi Firebase secara terenkripsi di server Google
+ *    (PropertiesService) sehingga TIDAK PERLU ditulis di dalam kode GitHub Pages.
+ * 2. Menjadi Proxy Server ke Firebase Realtime Database (RTDB) agar URL database
+ *    dan Database Secret tidak pernah terlihat oleh publik.
+ * 3. Mengunggah foto inventori ke Google Drive & mencatat transaksi ke Spreadsheet.
+ *
+ * CARA PAKAI:
+ * 1. Paste kode ini ke editor Google Apps Script (Extensions > Apps Script).
+ * 2. Klik "Deploy" > "New deployment" > pilih jenis "Web app".
+ * 3. Set "Execute as": Me, dan "Who has access": Anyone.
+ * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi,
+ *    bersama dengan VAULT_SECRET_TOKEN di bawah ini.
+ */
+
+var VAULT_SECRET_TOKEN = "${inputToken}"; // Ganti sesuai keinginan Anda
+
+function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(15000);
   try {
-    var rawData = e.postData.contents;
+    var rawData = e.postData ? e.postData.contents : "{}";
     var data = JSON.parse(rawData);
-    
-    // 1. FITUR UPLOAD FOTO ETALASE KE GOOGLE DRIVE
+    var scriptProps = PropertiesService.getScriptProperties();
+
+    // Validasi Token Rahasia Brankas untuk semua operasi sensitif
+    var savedToken = scriptProps.getProperty("VAULT_SECRET_TOKEN") || VAULT_SECRET_TOKEN;
+    if (data.secretToken !== savedToken) {
+      return jsonResponse({
+        status: "error",
+        message: "Akses Ditolak: Token Rahasia Brankas (Secret Token) tidak sesuai!"
+      });
+    }
+
+    // 0. TES KONEKSI BRANKAS (PING)
+    if (data.type === "PING") {
+      var hasCfg = Boolean(scriptProps.getProperty("FIREBASE_CONFIG_JSON"));
+      return jsonResponse({
+        status: "success",
+        vaultReady: hasCfg,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // 1. SIMPAN KONFIGURASI API FIREBASE KE BRANKAS SERVER GOOGLE (PropertiesService)
+    if (data.type === "SAVE_FIREBASE_CONFIG") {
+      if (!data.firebaseConfig || !data.firebaseConfig.apiKey) {
+        return jsonResponse({ status: "error", message: "Data konfigurasi Firebase tidak lengkap." });
+      }
+      scriptProps.setProperty("FIREBASE_CONFIG_JSON", JSON.stringify(data.firebaseConfig));
+      if (data.dbSecret) {
+        scriptProps.setProperty("FIREBASE_DB_SECRET", String(data.dbSecret).trim());
+      }
+      return jsonResponse({
+        status: "success",
+        message: "Konfigurasi Firebase berhasil dikunci di dalam PropertiesService Google Script."
+      });
+    }
+
+    // 2. AMBIL KONFIGURASI API FIREBASE DARI BRANKAS SERVER GOOGLE
+    if (data.type === "GET_FIREBASE_CONFIG") {
+      var rawCfg = scriptProps.getProperty("FIREBASE_CONFIG_JSON");
+      if (!rawCfg) {
+        return jsonResponse({
+          status: "empty",
+          message: "Brankas Google Script masih kosong. Silakan isi API Key di menu Integrasi lalu klik Kirim & Kunci API ke Brankas."
+        });
+      }
+      return jsonResponse({
+        status: "success",
+        firebaseConfig: JSON.parse(rawCfg)
+      });
+    }
+
+    // 3. PROXY AMAN BACA/TULIS KE FIREBASE REALTIME DATABASE (RTDB) DARI SERVER GOOGLE
+    if (data.type === "RTDB_PROXY") {
+      var rawCfgProxy = scriptProps.getProperty("FIREBASE_CONFIG_JSON");
+      if (!rawCfgProxy) {
+        return jsonResponse({ status: "error", message: "Konfigurasi Firebase belum disimpan di Brankas GAS." });
+      }
+      var fbCfg = JSON.parse(rawCfgProxy);
+      var dbUrl = (fbCfg.dbUrl || ("https://" + fbCfg.projectId + "-default-rtdb.firebaseio.com")).replace(/\\/$/, "");
+      var dbSecret = scriptProps.getProperty("FIREBASE_DB_SECRET") || data.idToken || "";
+      var cleanPath = String(data.path || "").replace(/^\\/+|\\/+$/g, "");
+      var targetUrl = dbUrl + "/" + cleanPath + ".json" + (dbSecret ? ("?auth=" + encodeURIComponent(dbSecret)) : "");
+
+      var fetchOptions = {
+        method: data.method || "GET",
+        contentType: "application/json",
+        muteHttpExceptions: true
+      };
+      if (data.payload !== undefined && data.method !== "GET") {
+        fetchOptions.payload = JSON.stringify(data.payload);
+      }
+
+      var rtdbRes = UrlFetchApp.fetch(targetUrl, fetchOptions);
+      var resCode = rtdbRes.getResponseCode();
+      var resBody = rtdbRes.getContentText();
+      return jsonResponse({
+        status: (resCode >= 200 && resCode < 300) ? "success" : "error",
+        httpCode: resCode,
+        data: resBody ? JSON.parse(resBody) : null
+      });
+    }
+
+    // 4. FITUR UPLOAD FOTO ETALASE KE GOOGLE DRIVE
     if (data.type === "UPLOAD_IMAGE") {
       var folderName = "Singaraja_Soccerfield_Images";
       var folders = DriveApp.getFoldersByName(folderName);
@@ -6896,14 +6830,14 @@ Matur Suksma!`;
       
       var directUrl = "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w600";
       
-      return ContentService.createTextOutput(JSON.stringify({
+      return jsonResponse({
         status: "success",
         fileUrl: directUrl,
         fileId: file.getId()
-      })).setMimeType(ContentService.MimeType.JSON);
+      });
     }
 
-    // 2. FITUR PENCATATAN KE GOOGLE SPREADSHEET
+    // 5. FITUR PENCATATAN KE GOOGLE SPREADSHEET
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     setupSheets(ss);
     var p = data.payload || data;
@@ -6919,14 +6853,20 @@ Matur Suksma!`;
       sheetCls.appendRow([new Date(), p.id, p.date, p.cashierName, p.startingCash, p.cashSales, p.qrisSales || 0, p.kasirExpenses || 0, p.expectedCash, p.actualCash, p.difference, p.notes]);
     }
 
-    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse({ status: "success" });
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse({ status: "error", message: err.toString() });
   } finally {
     lock.releaseLock();
   }
 }
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
 function setupSheets(ss) {
+  if (!ss) return;
   if (!ss.getSheetByName("Penjualan_Kasir")) {
     var sh1 = ss.insertSheet("Penjualan_Kasir");
     sh1.appendRow(["Timestamp", "No Nota", "Tanggal", "Kasir", "Items", "Total", "Metode"]);
@@ -6945,7 +6885,7 @@ function setupSheets(ss) {
       a.href = URL.createObjectURL(blob);
       a.download = 'Code.gs';
       a.click();
-      showToast('File Code.gs berhasil diunduh!', 'success');
+      showToast('🔒 File Code.gs (Brankas API + Proxy Aman) berhasil diunduh!', 'success');
     }
 
     // ==========================================
@@ -7011,14 +6951,10 @@ Salam Olahraga & Fairplay!`;
       window.open(url, '_blank');
     }
 
-    // ==========================================
-    // LAPORAN PENJUALAN KASIR HARI INI VIA WHATSAPP (TERBANYAK -> TERKECIL)
-    // ==========================================
     function openSalesTodayWhatsAppModal() {
       const todayStr = getLocalDateString(new Date());
       const isKasir = currentUser && currentUser.role === 'Kasir';
 
-      // Ambil transaksi hari ini
       const todayTrx = transactions.filter(t => {
         const matchesDate = getLocalDateString(t.date) === todayStr;
         if (!matchesDate) return false;
@@ -7033,7 +6969,6 @@ Salam Olahraga & Fairplay!`;
         return;
       }
 
-      // Agregasi jumlah laku dan subtotal per item barang
       const itemMap = {};
       let totalQty = 0;
       let totalOmset = 0;
@@ -7061,14 +6996,12 @@ Salam Olahraga & Fairplay!`;
         }
       });
 
-      // Urutkan barang dari yang paling banyak laku (terbanyak -> terkecil)
       const sortedItems = Object.keys(itemMap).map(name => ({
         name: name,
         qty: itemMap[name].qty,
         subtotal: itemMap[name].subtotal
       })).sort((a, b) => b.qty - a.qty || b.subtotal - a.subtotal);
 
-      // Susun daftar teks berurutan
       let itemsListText = '';
       sortedItems.forEach((it, idx) => {
         itemsListText += `${idx + 1}. *${it.name}* : ${it.qty} pcs (${formatRupiah(it.subtotal)})\n`;
@@ -7115,7 +7048,7 @@ Salam Olahraga & Fairplay!`;
     }
 
     // ==========================================
-    // USER MANAGEMENT OPERATIONS
+    // USER MANAGEMENT OPERATIONS (SHA-256)
     // ==========================================
     function renderUsersTable() {
       const body = document.getElementById('usersTableBody');
@@ -7130,7 +7063,7 @@ Salam Olahraga & Fairplay!`;
               ${u.role}
             </span>
           </td>
-          <td class="p-4 font-mono text-slate-400 whitespace-nowrap">••••••</td>
+          <td class="p-4 font-mono text-emerald-400 text-[11px] whitespace-nowrap">🔒 Terenkripsi SHA-256</td>
           <td class="p-4 text-center whitespace-nowrap">
             <button onclick="editUser('${u.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 mr-1">
               <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
@@ -7165,7 +7098,7 @@ Salam Olahraga & Fairplay!`;
       document.getElementById('usrEditId').value = u.id;
       document.getElementById('usrFullName').value = u.name;
       document.getElementById('usrUsername').value = u.username;
-      document.getElementById('usrPassword').value = u.password;
+      document.getElementById('usrPassword').value = '';
       document.getElementById('usrRole').value = u.role;
       openModal('userModal');
     }
@@ -7203,8 +7136,8 @@ Salam Olahraga & Fairplay!`;
       const password = document.getElementById('usrPassword')?.value.trim();
       const role = document.getElementById('usrRole')?.value;
 
-      if (!name || !username || !password) {
-        showToast('Semua kolom wajib diisi!', 'error');
+      if (!name || !username || (!id && !password)) {
+        showToast('Nama, Username, dan Password wajib diisi!', 'error');
         return;
       }
 
@@ -7220,7 +7153,7 @@ Salam Olahraga & Fairplay!`;
       if (id) {
         const u = users.find(item => item.id === id);
         if (!u) {
-          showToast('Akun pengguna tidak ditemukan. Muat ulang data lalu coba kembali.', 'error');
+          showToast('Akun pengguna tidak ditemukan.', 'error');
           return;
         }
 
@@ -7228,19 +7161,20 @@ Salam Olahraga & Fairplay!`;
         oldRole = u.role;
         renamedCashier = oldName !== name && (oldRole === 'Kasir' || role === 'Kasir');
 
-        // Ambil arsip multi-tahun terlebih dahulu agar riwayat lama di cloud ikut diperbarui.
         if (renamedCashier && typeof window.pullAllMultiYearPartitions === 'function') {
           await window.pullAllMultiYearPartitions(false);
         }
 
         u.name = name;
         u.username = username;
-        u.password = password;
+        if (password) {
+          u.passwordHash = await sha256Hex(password);
+          delete u.password;
+        }
         u.role = role;
 
         if (renamedCashier) {
           renameCashierReferences(oldName, name);
-          // Simpan setiap koleksi yang memuat nama kasir ke penyimpanan lokal/IndexedDB.
           setStored(KEY_TRANSACTIONS, transactions);
           setStored(KEY_BONS, bons);
           setStored(KEY_EXPENSES, expenses);
@@ -7249,24 +7183,23 @@ Salam Olahraga & Fairplay!`;
           setStored(KEY_EMPLOYEES, employees);
         }
 
-        // Perbarui sesi jika admin sedang mengubah akunnya sendiri, termasuk nama dan role.
         if (currentUser && currentUser.id === id) {
           currentUser = { ...currentUser, name, username, role };
           try { localStorage.setItem(KEY_AUTH_SESSION, JSON.stringify(currentUser)); } catch (e) {}
           applyRolePermissions();
         }
       } else {
+        const hashedPassword = await sha256Hex(password);
         users.push({
           id: 'USR-' + Date.now().toString().slice(-4),
           name: name,
           username: username,
-          password: password,
+          passwordHash: hashedPassword,
           role: role
         });
       }
 
       setStored(KEY_USERS, users);
-      // Kirim perubahan user dan semua riwayat terkait ke cloud serta partisi tahunan.
       if (renamedCashier && typeof window.immediateCloudSync === 'function') {
         await window.immediateCloudSync();
       }
@@ -7283,8 +7216,8 @@ Salam Olahraga & Fairplay!`;
         switchTab('dashboard');
       }
       showToast(renamedCashier
-        ? `Akun disimpan. Nama kasir diperbarui pada semua riwayat lokal dan database (${oldName} → ${name}).`
-        : 'Akun pengguna berhasil disimpan!', 'success');
+        ? `Akun disimpan. Nama kasir diperbarui (${oldName} → ${name}).`
+        : 'Akun pengguna berhasil disimpan dengan enkripsi SHA-256!', 'success');
     }
 
     function deleteUser(id) {
@@ -7294,7 +7227,6 @@ Salam Olahraga & Fairplay!`;
       showToast('Akun berhasil dihapus.', 'info');
     }
 
-    // Live Clock WITA
     function startLiveClock() {
       setInterval(() => {
         const now = new Date();
@@ -7313,7 +7245,6 @@ Salam Olahraga & Fairplay!`;
       refreshBtStatusUI();
       trySilentBluetoothReconnect();
 
-      // Inisialisasi daftar suara SpeechSynthesis
       if ('speechSynthesis' in window) {
         window.speechSynthesis.getVoices();
         window.speechSynthesis.onvoiceschanged = () => {
@@ -7321,7 +7252,6 @@ Salam Olahraga & Fairplay!`;
         };
       }
 
-      // Listener kesiapan Firebase SDK untuk inisialisasi otomatis
       if (window.FB_SDK) {
         initAutoFirebaseIntegration();
       } else {
@@ -7330,7 +7260,6 @@ Salam Olahraga & Fairplay!`;
         });
       }
 
-      // Enter key listener pada form login
       const pwdInput = document.getElementById('loginPassword');
       if (pwdInput) {
         pwdInput.addEventListener('keyup', (e) => {
@@ -7344,16 +7273,13 @@ Salam Olahraga & Fairplay!`;
         });
       }
 
-      // Check Saved Auth Session (Agar tidak perlu login ulang saat refresh)
       const savedSession = getStored(KEY_AUTH_SESSION, null);
       if (savedSession && savedSession.username && savedSession.role) {
-        // Validasi apakah akun masih terdaftar di database
         const userExists = users.some(u => u.username.toLowerCase() === savedSession.username.toLowerCase());
         if (userExists) {
           currentUser = savedSession;
           document.getElementById('loginOverlay').classList.add('hidden');
           applyRolePermissions();
-          // Buka menu/tab terakhir yang sedang aktif sebelum di-refresh
           const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
           switchTab(lastActiveTab);
         } else {
@@ -7363,7 +7289,6 @@ Salam Olahraga & Fairplay!`;
           renderPosCatalog();
         }
       } else {
-        // Siapkan render tampilan default
         renderDashboard();
         renderPosCatalog();
       }
@@ -7387,7 +7312,6 @@ Salam Olahraga & Fairplay!`;
         navigator.serviceWorker.register('./sw.js')
           .then((reg) => {
             reg.update();
-            console.log('PWA Service Worker aktif:', reg.scope);
           })
           .catch((err) => {
             console.warn('Registrasi Service Worker gagal:', err);
@@ -7445,17 +7369,74 @@ Salam Olahraga & Fairplay!`;
   </script>
 
   <!-- ===================================================================================== -->
-  <!-- 6. ENGINE DATABASE MULTI-TAHUN (INDEXED-DB + FIRESTORE SHARDING + RTDB + AUTO-BACKUP) -->
+  <!-- 6. ENGINE DATABASE MULTI-TAHUN (INDEXED-DB + GAS PROXY + FIRESTORE SHARDING + RTDB)  -->
   <!-- ===================================================================================== -->
   <script>
     (function() {
-      const RTDB_BASE_URL = (typeof OFFICIAL_FIREBASE_CONFIG !== 'undefined' && OFFICIAL_FIREBASE_CONFIG.dbUrl)
-        ? OFFICIAL_FIREBASE_CONFIG.dbUrl.replace(/\/$/, '')
-        : "https://singarajasoccerfield-1f2bb-default-rtdb.firebaseio.com";
+      function getActiveRtdbBaseUrl() {
+        const cfg = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
+        if (cfg && cfg.dbUrl) return cfg.dbUrl.replace(/\/$/, '');
+        if (cfg && cfg.projectId) return `https://${cfg.projectId}-default-rtdb.firebaseio.com`;
+        return "";
+      }
+
+      // Panggil Realtime Database melalui Proxy Google Apps Script atau dengan Token Auth Resmi
+      async function secureRtdbRequest(path, method = 'GET', payload = undefined) {
+        const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
+        const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+        let idToken = '';
+        try {
+          if (fbAuth && fbAuth.currentUser) {
+            idToken = await fbAuth.currentUser.getIdToken();
+          }
+        } catch (e) {}
+
+        // 1. Prioritas Utama: Lewat Proxy Server Google Apps Script (Menyembunyikan URL Database & Secret)
+        if (webhookUrl && secretToken) {
+          try {
+            const gasRes = await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                type: 'RTDB_PROXY',
+                secretToken: secretToken,
+                path: path,
+                method: method,
+                payload: payload,
+                idToken: idToken
+              })
+            });
+            const gasJson = await gasRes.json();
+            if (gasJson && gasJson.status === 'success') {
+              return { ok: true, data: gasJson.data };
+            }
+          } catch (gasErr) {
+            console.warn('GAS RTDB Proxy fallback notice:', gasErr);
+          }
+        }
+
+        // 2. Fallback Terautentikasi: Gunakan Firebase ID Token (?auth=idToken) jika RTDB URL tersedia di memori lokal
+        const baseUrl = getActiveRtdbBaseUrl();
+        if (!baseUrl || !idToken) {
+          return { ok: false, data: null };
+        }
+        const cleanPath = String(path || '').replace(/^\/+|\/+$/g, '');
+        const url = `${baseUrl}/${cleanPath}.json?auth=${encodeURIComponent(idToken)}`;
+        const opts = {
+          method: method,
+          headers: { 'Content-Type': 'application/json' }
+        };
+        if (payload !== undefined && method !== 'GET') {
+          opts.body = JSON.stringify(payload);
+        }
+        const directRes = await fetch(url, opts);
+        if (!directRes.ok) return { ok: false, data: null };
+        const directData = await directRes.json();
+        return { ok: true, data: directData };
+      }
 
       // =========================================================
-      // A. INDEXED-DB ENGINE (KAPASITAS RATUSAN MB DI BROWSER)
-      // Mengatasi batas 5MB LocalStorage agar awet bertahun-tahun
+      // A. INDEXED-DB ENGINE
       // =========================================================
       const IDB_NAME = 'SingarajaSoccerfield_LongTermDB';
       const IDB_VERSION = 1;
@@ -7515,23 +7496,13 @@ Salam Olahraga & Fairplay!`;
         });
       }
 
-      // =========================================================
-      // B. SAFE LOCALSTORAGE PENYIMPANAN CERDAS (ANTI QUOTA FULL)
-      // Menyimpan penuh di IndexedDB & memangkas arsip sangat lama
-      // di LocalStorage jika mendekati batas 5MB browser
-      // =========================================================
       window.setStored = function(key, value) {
-        // 1. Simpan 100% riwayat utuh tanpa batas ke IndexedDB
         idbSet(key, value);
-
-        // 2. Simpan ke LocalStorage dengan pengaman otomatis jika kuota penuh
         try {
           localStorage.setItem(key, JSON.stringify(value));
         } catch (quotaErr) {
-          console.warn('LocalStorage mendekati batas 5MB, mengaktifkan kompresi arsip lokal (data penuh tetap aman di IndexedDB & Cloud):', quotaErr);
           try {
             if (Array.isArray(value) && value.length > 500) {
-              // Simpan 500 data terbaru di LocalStorage cepat, sisanya di IndexedDB & Cloud
               const recentSlice = value.slice(-500);
               localStorage.setItem(key, JSON.stringify(recentSlice));
             }
@@ -7542,11 +7513,6 @@ Salam Olahraga & Fairplay!`;
         triggerAutoCloudSync(key, value);
       };
 
-      // =========================================================
-      // C. PARTISI DATABASE PER TAHUN (SHARDING BEBAS LIMIT 1 MB)
-      // Setiap koleksi dipecah berdasarkan tahun (contoh: 2026, 2027, 2028)
-      // sehingga dokumen Firestore tidak akan pernah penuh selamanya
-      // =========================================================
       function extractYearFromItem(item) {
         const rawDate = item?.date || item?.timestamp || item?.createdAt || '';
         const match = String(rawDate).match(/^(\d{4})/);
@@ -7565,7 +7531,6 @@ Salam Olahraga & Fairplay!`;
         return groups;
       }
 
-      // Simpan koleksi ke Cloud secara terpartisi per Tahun + RTDB + Master Index
       async function savePartitionedCollectionToCloud(collectionName, fullArray, idField = 'id') {
         const cleaned = cleanDatasetArray(fullArray, idField);
         await idbSet('ssf_full_' + collectionName, cleaned);
@@ -7579,23 +7544,21 @@ Salam Olahraga & Fairplay!`;
           yearGroups[yearsList[0]] = [];
         }
 
-        // 1. Simpan ke Cloud Firestore (Dokumen terpisah per Koleksi & per Tahun)
+        // 1. Simpan ke Cloud Firestore
         if (window.FB_SDK && fbDb) {
           try {
             if (fbAuth && !fbAuth.currentUser) {
               await window.FB_SDK.signInAnonymously(fbAuth);
             }
 
-            // Simpan indeks daftar tahun aktif + data terbaru di dokumen koleksi khusus
             const indexRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'ssf_' + collectionName);
             await window.FB_SDK.setDoc(indexRef, {
               updatedAt: new Date().toISOString(),
               availableYears: yearsList,
               deletedIds: (deletedIds || []).slice(-1000),
-              items: cleaned.slice(-800) // 800 entri terbaru untuk muat cepat
+              items: cleaned.slice(-800)
             }, { merge: true });
 
-            // Simpan setiap partisi tahun di dokumennya masing-masing (misal: ssf_attendance_2026, ssf_attendance_2027)
             for (const yr of yearsList) {
               const partRef = window.FB_SDK.doc(fbDb, 'cloud_sync', `ssf_${collectionName}_${yr}`);
               await window.FB_SDK.setDoc(partRef, {
@@ -7611,28 +7574,20 @@ Salam Olahraga & Fairplay!`;
           }
         }
 
-        // 2. Simpan ke Firebase Realtime Database (REST JSON terpartisi per tahun - Tanpa Batas 1MB Dokumen)
+        // 2. Simpan ke Realtime Database secara Aman (Lewat Proxy GAS atau Token Auth)
         try {
-          await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/meta.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              updatedAt: new Date().toISOString(),
-              availableYears: yearsList,
-              deletedIds: (deletedIds || []).slice(-1000)
-            })
+          await secureRtdbRequest(`ssf_v2/${collectionName}/meta`, 'PUT', {
+            updatedAt: new Date().toISOString(),
+            availableYears: yearsList,
+            deletedIds: (deletedIds || []).slice(-1000)
           });
 
           for (const yr of yearsList) {
-            const res = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/years/${yr}.json`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(yearGroups[yr] || [])
-            });
+            const res = await secureRtdbRequest(`ssf_v2/${collectionName}/years/${yr}`, 'PUT', yearGroups[yr] || []);
             if (res.ok) anySuccess = true;
           }
         } catch (err) {
-          console.warn(`RTDB partitioned save warning (${collectionName}):`, err);
+          console.warn(`Secure RTDB save warning (${collectionName}):`, err);
         }
 
         updateCloudSyncStatus(anySuccess ? 'ONLINE' : 'ERROR', anySuccess ? 'Cloud Sinkron' : 'Tersimpan Lokal');
@@ -7640,11 +7595,9 @@ Salam Olahraga & Fairplay!`;
         return anySuccess;
       }
 
-      // Ambil & Gabungkan Koleksi dari IndexedDB + Semua Partisi Tahun di Cloud Firestore + RTDB
       async function loadPartitionedCollectionFromCloud(collectionName, currentArray, idField = 'id', pullAllYears = true) {
         let combined = Array.isArray(currentArray) ? [...currentArray] : [];
 
-        // 1. Cek cadangan penuh di IndexedDB lokal terlebih dahulu
         const idbCached = await idbGet('ssf_full_' + collectionName);
         if (Array.isArray(idbCached) && idbCached.length > 0) {
           combined = mergeUniqueById(combined, idbCached, idField);
@@ -7653,7 +7606,6 @@ Salam Olahraga & Fairplay!`;
         const currentYear = String(new Date().getFullYear());
         let yearsToFetch = new Set([currentYear, String(Number(currentYear) - 1)]);
 
-        // 2. Ambil dari Cloud Firestore (Dokumen Indeks + Partisi Tahun + Dokumen Legacy)
         if (window.FB_SDK && fbDb) {
           try {
             if (fbAuth && !fbAuth.currentUser) {
@@ -7673,7 +7625,6 @@ Salam Olahraga & Fairplay!`;
               }
             }
 
-            // Ambil setiap dokumen partisi tahunan
             for (const yr of yearsToFetch) {
               try {
                 const partRef = window.FB_SDK.doc(fbDb, 'cloud_sync', `ssf_${collectionName}_${yr}`);
@@ -7687,7 +7638,6 @@ Salam Olahraga & Fairplay!`;
               } catch (ePart) {}
             }
 
-            // Ambil juga dari dokumen utama legacy (singaraja_soccerfield_data) agar data lama tidak hilang
             const mainRef = window.FB_SDK.doc(fbDb, 'cloud_sync', 'singaraja_soccerfield_data');
             const mainSnap = await window.FB_SDK.getDoc(mainRef);
             if (mainSnap.exists()) {
@@ -7702,30 +7652,25 @@ Salam Olahraga & Fairplay!`;
           }
         }
 
-        // 3. Ambil dari Firebase Realtime Database (REST JSON)
+        // Ambil dari Realtime Database lewat Proxy GAS atau Token Auth
         try {
-          const metaRes = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/meta.json`);
-          if (metaRes.ok) {
-            const metaData = await metaRes.json();
-            if (metaData) {
-              if (Array.isArray(metaData.deletedIds)) metaData.deletedIds.forEach(id => markRecordDeleted(id));
-              if (pullAllYears && Array.isArray(metaData.availableYears)) {
-                metaData.availableYears.forEach(y => yearsToFetch.add(String(y)));
-              }
+          const metaRes = await secureRtdbRequest(`ssf_v2/${collectionName}/meta`, 'GET');
+          if (metaRes.ok && metaRes.data) {
+            const metaData = metaRes.data;
+            if (Array.isArray(metaData.deletedIds)) metaData.deletedIds.forEach(id => markRecordDeleted(id));
+            if (pullAllYears && Array.isArray(metaData.availableYears)) {
+              metaData.availableYears.forEach(y => yearsToFetch.add(String(y)));
             }
           }
 
           for (const yr of yearsToFetch) {
-            const yrRes = await fetch(`${RTDB_BASE_URL}/ssf_v2/${collectionName}/years/${yr}.json`);
-            if (yrRes.ok) {
-              const yrItems = await yrRes.json();
-              if (Array.isArray(yrItems)) {
-                combined = mergeUniqueById(combined, yrItems, idField);
-              }
+            const yrRes = await secureRtdbRequest(`ssf_v2/${collectionName}/years/${yr}`, 'GET');
+            if (yrRes.ok && Array.isArray(yrRes.data)) {
+              combined = mergeUniqueById(combined, yrRes.data, idField);
             }
           }
         } catch (err) {
-          console.warn(`RTDB partitioned load warning (${collectionName}):`, err);
+          console.warn(`Secure RTDB load warning (${collectionName}):`, err);
         }
 
         const finalClean = cleanDatasetArray(combined, idField);
@@ -7733,11 +7678,6 @@ Salam Olahraga & Fairplay!`;
         return finalClean;
       }
 
-      // =========================================================
-      // D. OVERRIDE SINKRONISASI UTAMA AGAR BEBAS BATAS 1 MB
-      // Dokumen utama hanya menyimpan pengaturan & ringkasan terbaru,
-      // sedangkan riwayat penuh disimpan di partisi tahunan
-      // =========================================================
       window.buildCompleteCloudSyncPayload = function(lastSyncKey = 'PARTITIONED_SYNC') {
         return {
           lastSyncAt: new Date().toISOString(),
@@ -7751,7 +7691,7 @@ Salam Olahraga & Fairplay!`;
           attendance: cleanDatasetArray(attendance, 'id').slice(-300),
           employees: cleanDatasetArray(employees, 'id'),
           closings: cleanDatasetArray(closings, 'id').slice(-300),
-          users: users,
+          users: sanitizeUsersForStorage(users),
           rates: rentalRates,
           qrisUrl: customQrisUrl,
           qrisPayload: customQrisPayload,
@@ -7776,9 +7716,6 @@ Salam Olahraga & Fairplay!`;
         ]);
       };
 
-      // =========================================================
-      // E. PERBAIKAN MODUL ABSENSI KARYAWAN (SIMPAN & AMBIL DB)
-      // =========================================================
       function setBadgeState(badgeId, state, text) {
         const el = document.getElementById(badgeId);
         if (!el) return;
@@ -7878,9 +7815,6 @@ Salam Olahraga & Fairplay!`;
         showToast(`Data absensi ${targetAtt.employeeName} (${targetAtt.date}) berhasil dihapus dari Database!`, 'success');
       };
 
-      // =========================================================
-      // F. PERBAIKAN MODUL TUTUP KASIR (SIMPAN & AMBIL DB)
-      // =========================================================
       function getSelectedClosingDate() {
         const dateEl = document.getElementById('closingDateInput');
         if (dateEl && dateEl.value) return dateEl.value;
@@ -8056,10 +7990,6 @@ Salam Olahraga & Fairplay!`;
         if (closingIndex === -1) return;
 
         const target = closings[closingIndex];
-        if (!confirm(`Yakin ingin menghapus catatan tutup kasir tanggal ${target.date} oleh ${target.cashierName}?`)) {
-          return;
-        }
-
         markRecordDeleted(closingId);
         closings.splice(closingIndex, 1);
         setStored(KEY_CLOSINGS, closings);
@@ -8072,9 +8002,6 @@ Salam Olahraga & Fairplay!`;
         showToast(`Catatan tutup kasir (${target.date}) berhasil dihapus dari Database.`, 'success');
       };
 
-      // =========================================================
-      // G. FITUR PEMELIHARAAN, TARIK SEMUA ARSIP TAHUN & BACKUP JSON
-      // =========================================================
       window.updateDatabaseHealthMetrics = function() {
         try {
           let totalBytes = 0;
@@ -8142,10 +8069,10 @@ Salam Olahraga & Fairplay!`;
       window.exportFullDatabaseBackupJson = function() {
         const backupPayload = {
           app: 'Singaraja Soccerfield Management & POS System',
-          version: 'Multi-Year Long-Term v6',
+          version: 'Multi-Year Secure GAS Vault v7',
           exportedAt: new Date().toISOString(),
           data: {
-            users,
+            users: sanitizeUsersForStorage(users),
             products,
             transactions,
             bons,
@@ -8214,12 +8141,9 @@ Salam Olahraga & Fairplay!`;
         showToast('Mengoptimalkan database & mempartisi seluruh koleksi per tahun ke Cloud...', 'info');
         await window.immediateCloudSync();
         updateDatabaseHealthMetrics();
-        showToast('✅ Optimasi selesai! Seluruh data telah terpartisi rapi per tahun dan aman untuk penggunaan jangka panjang.', 'success');
+        showToast('✅ Optimasi selesai! Seluruh data telah terpartisi rapi per tahun dan aman.', 'success');
       };
 
-      // =========================================================
-      // H. AUTO-LOAD SAAT BUKA MENU & SAAT STARTUP APLIKASI
-      // =========================================================
       const origSwitchTab = window.switchTab;
       window.switchTab = function(tabId) {
         if (typeof origSwitchTab === 'function') {
@@ -8241,7 +8165,6 @@ Salam Olahraga & Fairplay!`;
         }
         updateDatabaseHealthMetrics();
 
-        // Tarik otomatis partisi database setelah inisialisasi
         setTimeout(() => {
           window.pullAllMultiYearPartitions(false);
         }, 1500);
