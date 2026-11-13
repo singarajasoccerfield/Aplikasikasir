@@ -225,14 +225,14 @@
         <div class="pt-2 border-t border-slate-800/80">
           <button type="button" onclick="toggleQuickVaultSetup()" class="w-full py-2 text-[11px] text-slate-400 hover:text-emerald-400 font-semibold flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span> Koneksi URL Google Script (Otomatis Buka Brankas Saat Login)</span>
+            <span>Pengaturan Brankas API Google Script (Perangkat Baru)</span>
           </button>
           <div id="quickVaultSetupBox" class="hidden mt-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl space-y-2 text-xs">
-            <p class="text-[10px] text-slate-400 leading-relaxed">Masukkan URL Web App Google Script Anda (atau kosongkan jika sudah diatur). <b>Token Rahasia Brankas akan dimasukkan secara otomatis oleh sistem</b> begitu Anda login dengan akun yang benar:</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed">Hubungkan perangkat ini ke Google Apps Script Anda untuk mengambil konfigurasi API Firebase secara terenkripsi (Tanpa menaruh API Key di GitHub):</p>
             <input type="url" id="loginGasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
-            <input type="password" id="loginGasTokenInput" placeholder="Otomatis terisi saat Login Benar (Opsional)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-emerald-400 font-mono text-[11px]">
+            <input type="password" id="loginGasTokenInput" placeholder="Token Rahasia Brankas (Secret Token)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
             <button type="button" onclick="connectQuickVaultFromLogin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs">
-              Simpan URL Google Script
+              Simpan & Tarik API dari Google Script
             </button>
           </div>
         </div>
@@ -1546,12 +1546,9 @@
                   <input type="url" id="sheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="sm:col-span-2">
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-slate-400 font-semibold">Token Rahasia Brankas (Otomatis Aktif Saat User Login Benar):</label>
-                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">AUTO-UNLOCK AKTIF</span>
-                  </div>
-                  <input type="password" id="gasVaultSecretToken" placeholder="Terisi otomatis saat login berhasil..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500">
-                  <p class="text-[10px] text-slate-500 mt-1">Sistem otomatis mengisi dan mengirimkan Token Rahasia ini ke Google Apps Script setiap kali Admin atau Kasir berhasil login dengan benar.</p>
+                  <label class="text-slate-400 block mb-1 font-semibold">Token Rahasia Brankas (Secret Token) *:</label>
+                  <input type="password" id="gasVaultSecretToken" placeholder="Contoh: SSF-RAHASIA-2026 (Harus sama dengan VAULT_SECRET_TOKEN di Code.gs)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                  <p class="text-[10px] text-slate-500 mt-1">Token ini disimpan di browser perangkat kasir Anda (tidak pernah tertulis di kode GitHub) untuk membuka Brankas API di Google Apps Script.</p>
                 </div>
               </div>
 
@@ -2513,7 +2510,6 @@
 
     // ====================================================================
     // PROTEKSI SANDI PENGGUNA DENGAN SHA-256 (TIDAK ADA PLAINTEXT DI GITHUB)
-    // & PEMBANGKIT OTOMATIS TOKEN BRANKAS SAAT USER LOGIN BENAR
     // ====================================================================
     async function sha256Hex(plainText) {
       const encoder = new TextEncoder();
@@ -2521,38 +2517,6 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    // Fungsi pembangkit Token Rahasia Brankas Otomatis (Hanya aktif jika user terautentikasi)
-    async function deriveAutoVaultSecretToken() {
-      const masterSeed = ['SSF', 'VAULT', 'BULELENG', 'PEMARON', '2026', 'AUTH_VERIFIED'].join('::');
-      const digest = await sha256Hex(masterSeed);
-      return 'SSF-AUTO-' + digest.slice(0, 24).toUpperCase();
-    }
-
-    // Aktifkan dan isi otomatis Token Rahasia Brankas begitu user berhasil login
-    async function autoUnlockGasVaultForAuthenticatedUser(triggerCloudFetch = true) {
-      try {
-        const autoToken = await deriveAutoVaultSecretToken();
-        if (!savedGasSecretToken || savedGasSecretToken.startsWith('SSF-AUTO-')) {
-          savedGasSecretToken = autoToken;
-          localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(autoToken));
-        }
-        const tokenInput = document.getElementById('gasVaultSecretToken');
-        if (tokenInput) tokenInput.value = savedGasSecretToken;
-        const loginTokIn = document.getElementById('loginGasTokenInput');
-        if (loginTokIn) loginTokIn.value = savedGasSecretToken;
-
-        // Jika URL Google Script sudah terpasang, otomatis tarik API Firebase & buka brankas
-        const activeUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-        if (triggerCloudFetch && activeUrl) {
-          await fetchFirebaseConfigFromGasVault(false);
-        }
-        return savedGasSecretToken;
-      } catch (e) {
-        console.warn('Auto-unlock vault token warning:', e);
-        return '';
-      }
     }
 
     // Hash SHA-256 untuk akun default (admin / admin123 & kasir1, kasir2 / 1234)
@@ -2863,20 +2827,19 @@
 
     async function connectQuickVaultFromLogin() {
       const url = document.getElementById('loginGasUrlInput')?.value.trim() || '';
-      let token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
-      if (!url) {
-        showToast('Masukkan URL Web App Google Script terlebih dahulu!', 'error');
+      const token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
+      if (!url || !token) {
+        showToast('Masukkan URL Google Script dan Token Rahasia Brankas!', 'error');
         return;
-      }
-      if (!token) {
-        token = await deriveAutoVaultSecretToken();
       }
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
       localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(token));
-      document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
-      showToast('✅ URL Google Script disimpan! Token Rahasia akan otomatis bekerja saat Anda login.', 'success');
+      const ok = await fetchFirebaseConfigFromGasVault(true);
+      if (ok) {
+        document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
+      }
     }
 
     // ==========================================
@@ -2946,23 +2909,19 @@
       errBox.classList.add('hidden');
       currentUser = { 
         id: foundUser.id,
-        role: foundUser.role,
+        role: foundUser.role, 
         name: foundUser.name || foundUser.username,
         username: foundUser.username
       };
 
-      // Simpan Sesi Login agar tidak logout saat refresh
       setStored(KEY_AUTH_SESSION, currentUser);
-
-      // OTOMATIS MASUKKAN TOKEN RAHASIA BRANKAS & TARIK API DARI GOOGLE SCRIPT SAAT LOGIN BENAR
-      await autoUnlockGasVaultForAuthenticatedUser(true);
 
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginOverlay').classList.add('hidden');
       applyRolePermissions();
       const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
       switchTab(lastActiveTab);
-      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})! Brankas API otomatis terbuka.`, 'success');
+      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})!`, 'success');
     }
 
     function shakeLoginOverlay() {
@@ -6197,12 +6156,7 @@ Matur Suksma!`;
     // Tarik konfigurasi Firebase dari Brankas Google Apps Script (PropertiesService)
     async function fetchFirebaseConfigFromGasVault(showToastAlert = false) {
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      let secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
-      if (!secretToken && currentUser) {
-        secretToken = await deriveAutoVaultSecretToken();
-        savedGasSecretToken = secretToken;
-        localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(secretToken));
-      }
+      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!webhookUrl) {
         if (showToastAlert) showToast('Masukkan Google Apps Script Web App URL terlebih dahulu!', 'error');
         return null;
@@ -6539,12 +6493,7 @@ Matur Suksma!`;
     // Simpan kredensial Firebase ke dalam PropertiesService Google Apps Script (Brankas GAS)
     async function saveFirebaseConfigToGasVault() {
       const webhookUrl = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      let secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
-      if (!secretToken) {
-        secretToken = await deriveAutoVaultSecretToken();
-        const tokEl = document.getElementById('gasVaultSecretToken');
-        if (tokEl) tokEl.value = secretToken;
-      }
+      const secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
 
       const projectId = document.getElementById('fbProjectId')?.value.trim() || '';
       const apiKey = document.getElementById('fbApiKey')?.value.trim() || '';
@@ -6811,12 +6760,7 @@ Matur Suksma!`;
 
     async function saveWebhookUrl() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || '';
-      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
-      if (!token) {
-        token = await deriveAutoVaultSecretToken();
-        const tokEl = document.getElementById('gasVaultSecretToken');
-        if (tokEl) tokEl.value = token;
-      }
+      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
@@ -6831,10 +6775,7 @@ Matur Suksma!`;
 
     async function testWebhookConnection() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
-      if (!token) {
-        token = await deriveAutoVaultSecretToken();
-      }
+      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       if (!url) {
         showToast('Masukkan URL Webhook Google Apps Script terlebih dahulu!', 'error');
         return;
@@ -6923,9 +6864,8 @@ Matur Suksma!`;
     // =========================================================================
     // GENERATOR CODE.GS (BRANKAS API FIREBASE + PROXY RTDB + UPLOAD DRIVE + SHEET)
     // =========================================================================
-    async function downloadAppsScriptCode() {
-      const autoDefaultToken = await deriveAutoVaultSecretToken();
-      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || autoDefaultToken;
+    function downloadAppsScriptCode() {
+      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || 'SSF-RAHASIA-2026';
       const scriptCode = `/**
  * ============================================================================
  * SINGARAJA SOCCERFIELD - SECURE GOOGLE APPS SCRIPT VAULT & FIREBASE PROXY
@@ -6941,11 +6881,11 @@ Matur Suksma!`;
  * 1. Paste kode ini ke editor Google Apps Script (Extensions > Apps Script).
  * 2. Klik "Deploy" > "New deployment" > pilih jenis "Web app".
  * 3. Set "Execute as": Me, dan "Who has access": Anyone.
- * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi.
- *    Token Rahasia di bawah ini akan otomatis dikirimkan saat Admin/Kasir berhasil login!
+ * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi,
+ *    bersama dengan VAULT_SECRET_TOKEN di bawah ini.
  */
 
-var VAULT_SECRET_TOKEN = "${inputToken}"; // Otomatis cocok dengan Token Login Aplikasi
+var VAULT_SECRET_TOKEN = "${inputToken}"; // Ganti sesuai keinginan Anda
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -6957,7 +6897,7 @@ function doPost(e) {
 
     // Validasi Token Rahasia Brankas untuk semua operasi sensitif
     var savedToken = scriptProps.getProperty("VAULT_SECRET_TOKEN") || VAULT_SECRET_TOKEN;
-    if (data.secretToken !== savedToken && data.secretToken !== VAULT_SECRET_TOKEN) {
+    if (data.secretToken !== savedToken) {
       return jsonResponse({
         status: "error",
         message: "Akses Ditolak: Token Rahasia Brankas (Secret Token) tidak sesuai!"
@@ -7517,8 +7457,6 @@ Salam Olahraga & Fairplay!`;
           currentUser = savedSession;
           document.getElementById('loginOverlay').classList.add('hidden');
           applyRolePermissions();
-          // Otomatis aktifkan Token Rahasia Brankas untuk sesi login yang masih aktif
-          autoUnlockGasVaultForAuthenticatedUser(true);
           const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
           switchTab(lastActiveTab);
         } else {
