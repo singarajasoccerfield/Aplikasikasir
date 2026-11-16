@@ -2554,8 +2554,12 @@
       return DEFAULT_GAS_SECRET_TOKEN;
     }
 
-    // Aktifkan dan isi otomatis URL Google Script & Token Rahasia Brankas begitu user berhasil login
+    let isVaultSyncInProgress = false;
+
+    // Aktifkan dan isi otomatis URL Google Script & Token Rahasia Brankas di latar belakang (Non-Blocking)
     async function autoUnlockGasVaultForAuthenticatedUser(triggerCloudFetch = true) {
+      if (isVaultSyncInProgress) return savedGasSecretToken;
+      isVaultSyncInProgress = true;
       try {
         if (!savedWebhookUrl) {
           savedWebhookUrl = DEFAULT_GAS_WEBHOOK_URL;
@@ -2575,17 +2579,23 @@
         const loginTokIn = document.getElementById('loginGasTokenInput');
         if (loginTokIn) loginTokIn.value = savedGasSecretToken;
 
-        // Otomatis tarik API Firebase dari Brankas Google Script & muat seluruh data database
+        // Jalankan sinkronisasi cloud di latar belakang tanpa menahan layar login
         if (triggerCloudFetch && savedWebhookUrl) {
-          await fetchFirebaseConfigFromGasVault(false);
+          if (!isCloudReady || !firebaseConfig || !firebaseConfig.apiKey) {
+            await fetchFirebaseConfigFromGasVault(false);
+          } else {
+            pullLatestDataFromFirebaseCloud().catch(() => {});
+          }
           if (typeof window.pullAllMultiYearPartitions === 'function') {
-            await window.pullAllMultiYearPartitions(false);
+            window.pullAllMultiYearPartitions(false).catch(() => {});
           }
         }
         return savedGasSecretToken;
       } catch (e) {
         console.warn('Auto-unlock vault token warning:', e);
         return DEFAULT_GAS_SECRET_TOKEN;
+      } finally {
+        isVaultSyncInProgress = false;
       }
     }
 
@@ -2923,9 +2933,9 @@
     // ==========================================
     // AUTH & ROLE CONTROLLER (SHA-256 HASHED)
     // ==========================================
-    async function verifyUserPassword(userObj, plainInput) {
+    async function verifyUserPassword(userObj, plainInput, precomputedHash = null) {
       if (!userObj) return false;
-      const inputHash = await sha256Hex(plainInput);
+      const inputHash = precomputedHash || await sha256Hex(plainInput);
       if (userObj.passwordHash && userObj.passwordHash === inputHash) {
         return true;
       }
@@ -2956,10 +2966,14 @@
         users = [...defaultUsers];
       }
 
+      // Hitung hash SHA-256 satu kali saja agar pengecekan user instan
+      const inputHash = await sha256Hex(passwordInput);
+      const lowerUsername = usernameInput.toLowerCase();
+
       let foundUser = null;
       for (const u of users) {
-        if (u && u.username && u.username.toLowerCase() === usernameInput.toLowerCase()) {
-          if (await verifyUserPassword(u, passwordInput)) {
+        if (u && u.username && u.username.toLowerCase() === lowerUsername) {
+          if (await verifyUserPassword(u, passwordInput, inputHash)) {
             foundUser = u;
             break;
           }
@@ -2968,8 +2982,8 @@
 
       if (!foundUser) {
         for (const du of defaultUsers) {
-          if (du.username.toLowerCase() === usernameInput.toLowerCase()) {
-            if (await verifyUserPassword(du, passwordInput)) {
+          if (du.username.toLowerCase() === lowerUsername) {
+            if (await verifyUserPassword(du, passwordInput, inputHash)) {
               foundUser = du;
               break;
             }
@@ -2992,18 +3006,20 @@
         username: foundUser.username
       };
 
-      // Simpan Sesi Login agar tidak logout saat refresh
-      setStored(KEY_AUTH_SESSION, currentUser);
-
-      // OTOMATIS MASUKKAN TOKEN RAHASIA BRANKAS & TARIK API DARI GOOGLE SCRIPT SAAT LOGIN BENAR
-      await autoUnlockGasVaultForAuthenticatedUser(true);
+      // Simpan sesi secara lokal & langsung buka tampilan aplikasi secara instan (tanpa menunggu jaringan)
+      try {
+        localStorage.setItem(KEY_AUTH_SESSION, JSON.stringify(currentUser));
+      } catch (e) {}
 
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginOverlay').classList.add('hidden');
       applyRolePermissions();
       const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
       switchTab(lastActiveTab);
-      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})! Brankas API otomatis terbuka.`, 'success');
+      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})!`, 'success');
+
+      // Jalankan pembukaan brankas & sinkronisasi database di latar belakang (non-blocking)
+      autoUnlockGasVaultForAuthenticatedUser(true);
     }
 
     function shakeLoginOverlay() {
@@ -6610,6 +6626,8 @@ Matur Suksma!`;
 
         const res = await response.json();
         if (res && res.status === 'success' && res.firebaseConfig && res.firebaseConfig.apiKey) {
+          const prevKey = firebaseConfig ? firebaseConfig.apiKey : '';
+          const prevProj = firebaseConfig ? firebaseConfig.projectId : '';
           firebaseConfig = {
             ...OFFICIAL_FIREBASE_CONFIG,
             ...res.firebaseConfig
@@ -6617,13 +6635,15 @@ Matur Suksma!`;
           localStorage.setItem(KEY_FIREBASE, JSON.stringify(firebaseConfig));
           renderIntegrationSettings();
 
-          // Reset & nyalakan ulang Firebase Client dengan kredensial dari Brankas GAS
-          fbApp = null;
-          fbAuth = null;
-          fbDb = null;
-          fbUser = null;
-          isCloudReady = false;
-          await initAutoFirebaseIntegration(true);
+          // Hanya inisialisasi ulang Firebase jika belum aktif atau kredensial berubah
+          if (!isCloudReady || prevKey !== firebaseConfig.apiKey || prevProj !== firebaseConfig.projectId) {
+            fbApp = null;
+            fbAuth = null;
+            fbDb = null;
+            fbUser = null;
+            isCloudReady = false;
+            await initAutoFirebaseIntegration(true);
+          }
 
           if (showToastAlert) {
             showToast('🔒 Berhasil menarik konfigurasi API Firebase dari Brankas Google Apps Script!', 'success');
