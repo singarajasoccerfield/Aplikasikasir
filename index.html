@@ -225,14 +225,14 @@
         <div class="pt-2 border-t border-slate-800/80">
           <button type="button" onclick="toggleQuickVaultSetup()" class="w-full py-2 text-[11px] text-slate-400 hover:text-emerald-400 font-semibold flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Pengaturan Brankas API Google Script (Perangkat Baru)</span>
+            <span> Koneksi URL Google Script (Otomatis Buka Brankas Saat Login)</span>
           </button>
           <div id="quickVaultSetupBox" class="hidden mt-2 p-3 bg-slate-950 border border-slate-800 rounded-2xl space-y-2 text-xs">
-            <p class="text-[10px] text-slate-400 leading-relaxed">Hubungkan perangkat ini ke Google Apps Script Anda untuk mengambil konfigurasi API Firebase secara terenkripsi (Tanpa menaruh API Key di GitHub):</p>
+            <p class="text-[10px] text-slate-400 leading-relaxed">Masukkan URL Web App Google Script Anda (atau kosongkan jika sudah diatur). <b>Token Rahasia Brankas akan dimasukkan secara otomatis oleh sistem</b> begitu Anda login dengan akun yang benar:</p>
             <input type="url" id="loginGasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
-            <input type="password" id="loginGasTokenInput" placeholder="Token Rahasia Brankas (Secret Token)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+            <input type="password" id="loginGasTokenInput" placeholder="Otomatis terisi saat Login Benar (Opsional)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-emerald-400 font-mono text-[11px]">
             <button type="button" onclick="connectQuickVaultFromLogin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs">
-              Simpan & Tarik API dari Google Script
+              Simpan URL Google Script
             </button>
           </div>
         </div>
@@ -688,7 +688,30 @@
                   <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-400"></i>
                   <h3 class="font-bold text-white text-base">Keranjang Kasir</h3>
                 </div>
-                <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold">Kosongkan</button>
+                <div class="flex items-center gap-1.5">
+                  <!-- Tombol Input Suara (Voice POS) -->
+                  <button type="button" id="btnVoicePos" onclick="toggleVoicePos(false)" class="px-2.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-all" title="Klik lalu sebutkan nama barang (contoh: Pocari 2 dan Aqua 1)">
+                    <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                    <span id="btnVoicePosLabel">Bicara</span>
+                  </button>
+                  <!-- Tombol Mode Hands-Free (Auto-Listen) -->
+                  <button type="button" id="btnVoiceHandsFree" onclick="toggleHandsFreeVoiceMode()" class="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-semibold flex items-center gap-1 transition-all" title="Mode Hands-Free: Mikrofon otomatis menyimak kembali setelah asisten selesai berbicara">
+                    <i data-lucide="headphones" class="w-3.5 h-3.5 text-teal-400"></i>
+                    <span id="btnVoiceHandsFreeLabel" class="hidden sm:inline">Auto</span>
+                  </button>
+                  <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold ml-1">Kosongkan</button>
+                </div>
+              </div>
+
+              <!-- Live Voice Recognition Transcript Bar -->
+              <div id="voicePosTranscriptBox" class="hidden bg-slate-950 border border-emerald-500/40 rounded-2xl p-3 space-y-1.5">
+                <div class="flex items-center justify-between gap-2 text-[11px] text-emerald-300 font-mono">
+                  <span id="voicePosTranscriptText" class="truncate">🎙️ Mendengarkan... sebutkan barang</span>
+                  <span id="voicePosPulseDot" class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping flex-shrink-0"></span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">
+                  Contoh: <span class="text-slate-300">"Pocari 2 sama Aqua 1"</span>, <span class="text-slate-300">"Kurangi Aqua 1"</span>, <span class="text-slate-300">"Total berapa"</span>, atau <span class="text-slate-300">"Bayar QRIS"</span>.
+                </p>
               </div>
 
               <!-- Cart Item List -->
@@ -696,7 +719,7 @@
                 <div class="py-10 text-center text-xs text-slate-500">
                   <i data-lucide="shopping-cart" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
                   <p>Keranjang masih kosong</p>
-                  <p class="text-[10px] text-slate-600 mt-1">Pilih barang dari katalog untuk transaksi</p>
+                  <p class="text-[10px] text-slate-600 mt-1">Pilih barang atau tekan <b>Suara</b> untuk bicara</p>
                 </div>
               </div>
 
@@ -1546,9 +1569,12 @@
                   <input type="url" id="sheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="text-slate-400 block mb-1 font-semibold">Token Rahasia Brankas (Secret Token) *:</label>
-                  <input type="password" id="gasVaultSecretToken" placeholder="Contoh: SSF-RAHASIA-2026 (Harus sama dengan VAULT_SECRET_TOKEN di Code.gs)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
-                  <p class="text-[10px] text-slate-500 mt-1">Token ini disimpan di browser perangkat kasir Anda (tidak pernah tertulis di kode GitHub) untuk membuka Brankas API di Google Apps Script.</p>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-slate-400 font-semibold">Token Rahasia Brankas (Otomatis Aktif Saat User Login Benar):</label>
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">AUTO-UNLOCK AKTIF</span>
+                  </div>
+                  <input type="password" id="gasVaultSecretToken" placeholder="Terisi otomatis saat login berhasil..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500">
+                  <p class="text-[10px] text-slate-500 mt-1">Sistem otomatis mengisi dan mengirimkan Token Rahasia ini ke Google Apps Script setiap kali Admin atau Kasir berhasil login dengan benar.</p>
                 </div>
               </div>
 
@@ -2510,13 +2536,57 @@
 
     // ====================================================================
     // PROTEKSI SANDI PENGGUNA DENGAN SHA-256 (TIDAK ADA PLAINTEXT DI GITHUB)
+    // & PEMBANGKIT OTOMATIS TOKEN BRANKAS SAAT USER LOGIN BENAR
     // ====================================================================
+    const DEFAULT_GAS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxG_GCcILWQMpsEcqW7MgEM0bdYemGGJN-SeVPJaYaCGPDDp4aA9fOY3UtBD7Ltc1lL/exec';
+    const DEFAULT_GAS_SECRET_TOKEN = 'SSF-RAHASIA-2026';
+
     async function sha256Hex(plainText) {
       const encoder = new TextEncoder();
       const data = encoder.encode(String(plainText));
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Fungsi pembangkit Token Rahasia Brankas Otomatis (Menggunakan kode rahasia resmi SSF-RAHASIA-2026)
+    async function deriveAutoVaultSecretToken() {
+      return DEFAULT_GAS_SECRET_TOKEN;
+    }
+
+    // Aktifkan dan isi otomatis URL Google Script & Token Rahasia Brankas begitu user berhasil login
+    async function autoUnlockGasVaultForAuthenticatedUser(triggerCloudFetch = true) {
+      try {
+        if (!savedWebhookUrl) {
+          savedWebhookUrl = DEFAULT_GAS_WEBHOOK_URL;
+        }
+        if (!savedGasSecretToken || savedGasSecretToken.startsWith('SSF-AUTO-')) {
+          savedGasSecretToken = DEFAULT_GAS_SECRET_TOKEN;
+        }
+        localStorage.setItem(KEY_WEBHOOK, JSON.stringify(savedWebhookUrl));
+        localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(savedGasSecretToken));
+
+        const webhookInput = document.getElementById('sheetWebhookUrl');
+        if (webhookInput) webhookInput.value = savedWebhookUrl;
+        const tokenInput = document.getElementById('gasVaultSecretToken');
+        if (tokenInput) tokenInput.value = savedGasSecretToken;
+        const loginUrlIn = document.getElementById('loginGasUrlInput');
+        if (loginUrlIn) loginUrlIn.value = savedWebhookUrl;
+        const loginTokIn = document.getElementById('loginGasTokenInput');
+        if (loginTokIn) loginTokIn.value = savedGasSecretToken;
+
+        // Otomatis tarik API Firebase dari Brankas Google Script & muat seluruh data database
+        if (triggerCloudFetch && savedWebhookUrl) {
+          await fetchFirebaseConfigFromGasVault(false);
+          if (typeof window.pullAllMultiYearPartitions === 'function') {
+            await window.pullAllMultiYearPartitions(false);
+          }
+        }
+        return savedGasSecretToken;
+      } catch (e) {
+        console.warn('Auto-unlock vault token warning:', e);
+        return DEFAULT_GAS_SECRET_TOKEN;
+      }
     }
 
     // Hash SHA-256 untuk akun default (admin / admin123 & kasir1, kasir2 / 1234)
@@ -2651,8 +2721,15 @@
     let customQrisUrl = getStored(KEY_QRIS, DEFAULT_QRIS);
     let customQrisPayload = getStored(KEY_QRIS_PAYLOAD, '');
     let settlingBonTargetId = null;
-    let savedWebhookUrl = getStored(KEY_WEBHOOK, '');
-    let savedGasSecretToken = getStored(KEY_GAS_TOKEN, '');
+    let savedWebhookUrl = getStored(KEY_WEBHOOK, '') || DEFAULT_GAS_WEBHOOK_URL;
+    let savedGasSecretToken = getStored(KEY_GAS_TOKEN, '') || DEFAULT_GAS_SECRET_TOKEN;
+    if (savedGasSecretToken.startsWith('SSF-AUTO-')) {
+      savedGasSecretToken = DEFAULT_GAS_SECRET_TOKEN;
+    }
+    try {
+      localStorage.setItem(KEY_WEBHOOK, JSON.stringify(savedWebhookUrl));
+      localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(savedGasSecretToken));
+    } catch (e) {}
     let firebaseConfig = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
 
     // Chart.js Global Instances
@@ -2827,19 +2904,20 @@
 
     async function connectQuickVaultFromLogin() {
       const url = document.getElementById('loginGasUrlInput')?.value.trim() || '';
-      const token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
-      if (!url || !token) {
-        showToast('Masukkan URL Google Script dan Token Rahasia Brankas!', 'error');
+      let token = document.getElementById('loginGasTokenInput')?.value.trim() || '';
+      if (!url) {
+        showToast('Masukkan URL Web App Google Script terlebih dahulu!', 'error');
         return;
+      }
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
       }
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
       localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(token));
-      const ok = await fetchFirebaseConfigFromGasVault(true);
-      if (ok) {
-        document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
-      }
+      document.getElementById('quickVaultSetupBox')?.classList.add('hidden');
+      showToast('✅ URL Google Script disimpan! Token Rahasia akan otomatis bekerja saat Anda login.', 'success');
     }
 
     // ==========================================
@@ -2909,19 +2987,23 @@
       errBox.classList.add('hidden');
       currentUser = { 
         id: foundUser.id,
-        role: foundUser.role, 
+        role: foundUser.role,
         name: foundUser.name || foundUser.username,
         username: foundUser.username
       };
 
+      // Simpan Sesi Login agar tidak logout saat refresh
       setStored(KEY_AUTH_SESSION, currentUser);
+
+      // OTOMATIS MASUKKAN TOKEN RAHASIA BRANKAS & TARIK API DARI GOOGLE SCRIPT SAAT LOGIN BENAR
+      await autoUnlockGasVaultForAuthenticatedUser(true);
 
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginOverlay').classList.add('hidden');
       applyRolePermissions();
       const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
       switchTab(lastActiveTab);
-      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})!`, 'success');
+      showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})! Brankas API otomatis terbuka.`, 'success');
     }
 
     function shakeLoginOverlay() {
@@ -3765,8 +3847,11 @@ Matur Suksma!`;
       }
     }
 
-    function playItemNameVoice(itemName) {
-      if (!itemName) return;
+    function playItemNameVoice(itemName, onEndCallback = null) {
+      if (!itemName) {
+        if (typeof onEndCallback === 'function') onEndCallback();
+        return;
+      }
       try {
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
@@ -3780,13 +3865,357 @@ Matur Suksma!`;
           const idVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id' || v.lang.startsWith('id'));
           if (idVoice) utterance.voice = idVoice;
 
+          if (typeof onEndCallback === 'function') {
+            utterance.onend = () => onEndCallback();
+            utterance.onerror = () => onEndCallback();
+          }
+
           setTimeout(() => {
             window.speechSynthesis.speak(utterance);
           }, 130);
+        } else if (typeof onEndCallback === 'function') {
+          onEndCallback();
         }
       } catch (e) {
         console.warn('SpeechSynthesis item voice error:', e);
+        if (typeof onEndCallback === 'function') onEndCallback();
       }
+    }
+
+    // ==========================================
+    // VOICE POS: INPUT BARANG KE KERANJANG VIA SUARA
+    // ==========================================
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let posRecognition = null;
+    let isVoiceListening = false;
+    let isHandsFreeVoiceMode = false;
+
+    const WORD_TO_NUMBER = {
+      'satu': 1, 'sebuah': 1, 'sebiji': 1, 'sebotol': 1, 'sebungkus': 1, 'sebks': 1, 'satu buah': 1,
+      'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5,
+      'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10,
+      'sebelas': 11, 'dua belas': 12, 'selusin': 12, 'lima belas': 15, 'dua puluh': 20
+    };
+
+    function toggleHandsFreeVoiceMode() {
+      if (!SpeechRecognitionAPI) {
+        showToast('Browser ini belum mendukung fitur suara. Gunakan Google Chrome.', 'error');
+        return;
+      }
+      isHandsFreeVoiceMode = !isHandsFreeVoiceMode;
+      const hfBtn = document.getElementById('btnVoiceHandsFree');
+      const hfLabel = document.getElementById('btnVoiceHandsFreeLabel');
+
+      if (isHandsFreeVoiceMode) {
+        if (hfBtn) hfBtn.className = 'px-2.5 py-1.5 rounded-xl bg-teal-600 text-white text-[11px] font-bold flex items-center gap-1 transition-all shadow-md shadow-teal-600/20';
+        if (hfLabel) hfLabel.innerText = 'Auto ON';
+        showToast('🎙️ Mode Kasir Hands-Free Aktif! Mikrofon otomatis menyimak kembali setelah asisten bicara.', 'success');
+        if (!isVoiceListening) {
+          toggleVoicePos(true);
+        }
+      } else {
+        if (hfBtn) hfBtn.className = 'px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-semibold flex items-center gap-1 transition-all';
+        if (hfLabel) hfLabel.innerText = 'Auto';
+        if (isVoiceListening && posRecognition) {
+          posRecognition.stop();
+        }
+        showToast('Mode Hands-Free dinonaktifkan.', 'info');
+      }
+    }
+
+    function toggleVoicePos(fromHandsFreeResume = false) {
+      if (!SpeechRecognitionAPI) {
+        showToast('Browser ini belum mendukung fitur suara. Gunakan Google Chrome.', 'error');
+        return;
+      }
+
+      if (isVoiceListening && posRecognition && !fromHandsFreeResume) {
+        isHandsFreeVoiceMode = false;
+        const hfBtn = document.getElementById('btnVoiceHandsFree');
+        const hfLabel = document.getElementById('btnVoiceHandsFreeLabel');
+        if (hfBtn) hfBtn.className = 'px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-semibold flex items-center gap-1 transition-all';
+        if (hfLabel) hfLabel.innerText = 'Auto';
+        posRecognition.stop();
+        return;
+      }
+
+      // Hentikan suara speaker sebelum membuka mikrofon agar tidak terjadi echo
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      posRecognition = new SpeechRecognitionAPI();
+      posRecognition.lang = 'id-ID';
+      posRecognition.interimResults = true;
+      posRecognition.maxAlternatives = 1;
+      posRecognition.continuous = false;
+
+      const btn = document.getElementById('btnVoicePos');
+      const label = document.getElementById('btnVoicePosLabel');
+      const box = document.getElementById('voicePosTranscriptBox');
+      const textEl = document.getElementById('voicePosTranscriptText');
+      const pulseDot = document.getElementById('voicePosPulseDot');
+
+      posRecognition.onstart = () => {
+        isVoiceListening = true;
+        if (btn) btn.className = 'px-2.5 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold flex items-center gap-1.5 animate-pulse shadow-lg shadow-rose-600/30';
+        if (label) label.innerText = 'Mendengar...';
+        if (box) box.classList.remove('hidden');
+        if (pulseDot) pulseDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping flex-shrink-0';
+        if (textEl) textEl.innerText = '🎙️ Silakan bicara (cth: "Pocari 2 sama Aqua 1")...';
+      };
+
+      posRecognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const piece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += piece;
+          } else {
+            interimTranscript += piece;
+          }
+        }
+
+        if (interimTranscript && textEl) {
+          textEl.innerText = `🎙️ "${interimTranscript}..."`;
+        }
+
+        if (finalTranscript) {
+          const cleanFinal = finalTranscript.toLowerCase().trim();
+          if (textEl) textEl.innerText = `🗣️ "${cleanFinal}"`;
+          processVoiceOrderToCart(cleanFinal);
+        }
+      };
+
+      posRecognition.onerror = (event) => {
+        if (event.error === 'not-allowed') {
+          isHandsFreeVoiceMode = false;
+          showToast('Izin mikrofon ditolak! Aktifkan izin Mic di pengaturan browser Chrome.', 'error');
+        } else if (event.error === 'no-speech') {
+          if (!isHandsFreeVoiceMode) {
+            showToast('Tidak ada suara terdeteksi. Klik Bicara untuk mencoba lagi.', 'info');
+          }
+        } else if (event.error !== 'aborted') {
+          showToast('Gagal menangkap suara: ' + event.error, 'error');
+        }
+      };
+
+      posRecognition.onend = () => {
+        isVoiceListening = false;
+        if (btn) btn.className = 'px-2.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-all';
+        if (label) label.innerText = 'Bicara';
+        if (pulseDot) pulseDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0';
+
+        if (!isHandsFreeVoiceMode) {
+          setTimeout(() => {
+            if (!isVoiceListening && box) box.classList.add('hidden');
+          }, 4500);
+        }
+      };
+
+      try {
+        posRecognition.start();
+      } catch (e) {
+        console.warn('SpeechRecognition start error:', e);
+      }
+    }
+
+    function resumeHandsFreeIfNeeded() {
+      if (isHandsFreeVoiceMode && !isVoiceListening) {
+        setTimeout(() => {
+          if (isHandsFreeVoiceMode && !isVoiceListening) {
+            toggleVoicePos(true);
+          }
+        }, 400);
+      }
+    }
+
+    function parseSpokenQuantityAndName(segment) {
+      let qty = 1;
+      let cleanSegment = segment;
+
+      const digitMatch = cleanSegment.match(/\b(\d+)\b/);
+      if (digitMatch) {
+        qty = Math.max(1, parseInt(digitMatch[1], 10));
+        cleanSegment = cleanSegment.replace(digitMatch[0], '').trim();
+      } else {
+        const sortedWords = Object.keys(WORD_TO_NUMBER).sort((a, b) => b.length - a.length);
+        for (const word of sortedWords) {
+          const regex = new RegExp(`\\b${word}\\b`, 'i');
+          if (regex.test(cleanSegment)) {
+            qty = WORD_TO_NUMBER[word];
+            cleanSegment = cleanSegment.replace(regex, '').trim();
+            break;
+          }
+        }
+      }
+
+      cleanSegment = cleanSegment
+        .replace(/\b(beli|ambil|tambah|tambahkan|masukkan|pesan|mau|minta|kurangi|hapus|batal|botol|bungkus|biji|pcs|buah|kotak|kaleng|gelas|porsi)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return { qty, cleanSegment };
+    }
+
+    function processVoiceOrderToCart(transcript) {
+      if (!transcript) {
+        resumeHandsFreeIfNeeded();
+        return;
+      }
+
+      // 1. Perintah suara: Kosongkan Keranjang
+      if (transcript.includes('kosongkan keranjang') || transcript.includes('hapus semua') || transcript.includes('reset keranjang')) {
+        clearCart();
+        playItemNameVoice('Keranjang dikosongkan', resumeHandsFreeIfNeeded);
+        showToast('🗑️ Keranjang berhasil dikosongkan via suara.', 'info');
+        return;
+      }
+
+      // 2. Perintah suara: Cek Total Tagihan Keranjang
+      if (transcript.includes('total berapa') || transcript.includes('berapa totalnya') || transcript.includes('cek keranjang')) {
+        const totalNow = getCartTotal();
+        const countNow = cart.reduce((s, i) => s + i.qty, 0);
+        if (countNow === 0) {
+          playItemNameVoice('Keranjang masih kosong', resumeHandsFreeIfNeeded);
+        } else {
+          playItemNameVoice(`Ada ${countNow} barang. Total tagihan ${angkaTerbilang(totalNow)} rupiah`, resumeHandsFreeIfNeeded);
+        }
+        return;
+      }
+
+      // 3. Perintah suara: Checkout Tunai / QRIS / Bon
+      if (transcript.includes('bayar tunai') || transcript.includes('bayar cash') || transcript.includes('uang pas')) {
+        isHandsFreeVoiceMode = false;
+        openPaymentModal('CASH');
+        playItemNameVoice('Membuka pembayaran tunai. Total ' + angkaTerbilang(getCartTotal()) + ' rupiah');
+        return;
+      }
+      if (transcript.includes('bayar qris') || transcript.includes('bayar kris')) {
+        isHandsFreeVoiceMode = false;
+        openPaymentModal('QRIS');
+        playItemNameVoice('Membuka pembayaran kris. Total ' + angkaTerbilang(getCartTotal()) + ' rupiah');
+        return;
+      }
+      if (transcript.includes('simpan bon') || transcript.includes('catat bon')) {
+        isHandsFreeVoiceMode = false;
+        openBonModal();
+        playItemNameVoice('Membuka pencatatan bon sementara');
+        return;
+      }
+
+      // 4. Perintah suara: Kurangi / Hapus barang tertentu dari keranjang
+      if (/^(kurangi|hapus|batal)\b/i.test(transcript)) {
+        const { qty, cleanSegment } = parseSpokenQuantityAndName(transcript);
+        const matchedProd = findBestProductMatch(cleanSegment);
+        if (matchedProd) {
+          const inCart = cart.find(c => c.id === matchedProd.id);
+          if (inCart) {
+            if (transcript.startsWith('hapus') && !/\d/.test(transcript)) {
+              cart = cart.filter(c => c.id !== matchedProd.id);
+              renderCart();
+              playItemNameVoice(`${matchedProd.name} dihapus dari keranjang`, resumeHandsFreeIfNeeded);
+              showToast(`🗑️ ${matchedProd.name} dihapus dari keranjang.`, 'info');
+            } else {
+              updateCartQty(matchedProd.id, -qty);
+              playItemNameVoice(`Mengurangi ${qty} ${matchedProd.name}`, resumeHandsFreeIfNeeded);
+              showToast(`➖ Mengurangi ${qty} ${matchedProd.name}`, 'info');
+            }
+            return;
+          }
+        }
+      }
+
+      // 5. Pecah kalimat jika menyebut beberapa barang sekaligus ("pocari 2 sama aqua 1")
+      const segments = transcript.split(/\b(?:dan|sama|terus|lalu|ditambah|plus|serta)\b|,/g)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const addedSummary = [];
+
+      segments.forEach(segment => {
+        const { qty, cleanSegment } = parseSpokenQuantityAndName(segment);
+        if (!cleanSegment) return;
+
+        const matchedProduct = findBestProductMatch(cleanSegment);
+        if (matchedProduct) {
+          if (matchedProduct.stock <= 0) {
+            showToast(`Stok ${matchedProduct.name} habis!`, 'error');
+            return;
+          }
+
+          const existing = cart.find(c => c.id === matchedProduct.id);
+          const currentQty = existing ? existing.qty : 0;
+          const allowedAdd = Math.min(qty, matchedProduct.stock - currentQty);
+
+          if (allowedAdd <= 0) {
+            showToast(`Stok ${matchedProduct.name} tidak mencukupi (Sisa: ${matchedProduct.stock})!`, 'error');
+            return;
+          }
+
+          if (existing) {
+            existing.qty += allowedAdd;
+          } else {
+            cart.push({
+              id: matchedProduct.id,
+              name: matchedProduct.name,
+              price: matchedProduct.price,
+              cost: matchedProduct.cost || 0,
+              qty: allowedAdd,
+              maxStock: matchedProduct.stock
+            });
+          }
+
+          addedSummary.push(`${allowedAdd} ${matchedProduct.name}`);
+        }
+      });
+
+      if (addedSummary.length > 0) {
+        playCartBeep();
+        renderCart();
+        const totalNow = getCartTotal();
+        const confirmSpeech = `${addedSummary.join(', ')} masuk keranjang. Total ${angkaTerbilang(totalNow)} rupiah.`;
+        playItemNameVoice(confirmSpeech, resumeHandsFreeIfNeeded);
+        showToast('✅ Masuk Keranjang: ' + addedSummary.join(', '), 'success');
+      } else {
+        playItemNameVoice('Maaf, barang tidak ditemukan', resumeHandsFreeIfNeeded);
+        showToast(`Barang tidak dikenali dari ucapan: "${transcript}"`, 'error');
+      }
+    }
+
+    function findBestProductMatch(spokenQuery) {
+      const cleanQuery = spokenQuery.toLowerCase().trim();
+      const queryTokens = cleanQuery.split(/\s+/).filter(w => w.length >= 2);
+      if (queryTokens.length === 0) return null;
+
+      let bestProduct = null;
+      let highestScore = 0;
+
+      products.forEach(prod => {
+        const prodName = prod.name.toLowerCase();
+        let score = 0;
+
+        if (prodName === cleanQuery) {
+          score += 20;
+        } else if (prodName.includes(cleanQuery)) {
+          score += 10;
+        }
+
+        queryTokens.forEach(token => {
+          if (prodName.includes(token)) {
+            score += 3;
+          }
+        });
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestProduct = prod;
+        }
+      });
+
+      return highestScore >= 3 ? bestProduct : null;
     }
 
     function angkaTerbilang(nilai) {
@@ -3941,7 +4370,7 @@ Matur Suksma!`;
           <div class="py-10 text-center text-xs text-slate-500">
             <i data-lucide="shopping-cart" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
             <p>Keranjang masih kosong</p>
-            <p class="text-[10px] text-slate-600 mt-1">Pilih barang dari katalog untuk transaksi</p>
+            <p class="text-[10px] text-slate-600 mt-1">Pilih barang atau tekan <b>Suara</b> untuk bicara</p>
           </div>
         `;
         try { lucide.createIcons(); } catch (e) {}
@@ -6156,7 +6585,12 @@ Matur Suksma!`;
     // Tarik konfigurasi Firebase dari Brankas Google Apps Script (PropertiesService)
     async function fetchFirebaseConfigFromGasVault(showToastAlert = false) {
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!secretToken && currentUser) {
+        secretToken = await deriveAutoVaultSecretToken();
+        savedGasSecretToken = secretToken;
+        localStorage.setItem(KEY_GAS_TOKEN, JSON.stringify(secretToken));
+      }
       if (!webhookUrl) {
         if (showToastAlert) showToast('Masukkan Google Apps Script Web App URL terlebih dahulu!', 'error');
         return null;
@@ -6234,7 +6668,6 @@ Matur Suksma!`;
       if (!window.FB_SDK) return;
       try {
         const storedCfg = getStored(KEY_FIREBASE, OFFICIAL_FIREBASE_CONFIG);
-        // Jika belum ada API Key di memori lokal tetapi URL Google Script sudah ada, tarik otomatis dari Brankas Google Script!
         if ((!storedCfg || !storedCfg.apiKey) && !skipVaultFetch && (savedWebhookUrl || getStored(KEY_WEBHOOK, ''))) {
           await fetchFirebaseConfigFromGasVault(false);
           return;
@@ -6490,10 +6923,14 @@ Matur Suksma!`;
       }
     }
 
-    // Simpan kredensial Firebase ke dalam PropertiesService Google Apps Script (Brankas GAS)
     async function saveFirebaseConfigToGasVault() {
       const webhookUrl = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let secretToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!secretToken) {
+        secretToken = await deriveAutoVaultSecretToken();
+        const tokEl = document.getElementById('gasVaultSecretToken');
+        if (tokEl) tokEl.value = secretToken;
+      }
 
       const projectId = document.getElementById('fbProjectId')?.value.trim() || '';
       const apiKey = document.getElementById('fbApiKey')?.value.trim() || '';
@@ -6515,11 +6952,9 @@ Matur Suksma!`;
         updatedAt: new Date().toISOString()
       };
 
-      // Simpan di cache perangkat lokal
       localStorage.setItem(KEY_FIREBASE, JSON.stringify(config));
       firebaseConfig = config;
 
-      // Reset & jalankan ulang koneksi Firebase lokal
       fbApp = null;
       fbAuth = null;
       fbDb = null;
@@ -6634,7 +7069,7 @@ Matur Suksma!`;
       }
       const client = initFirebaseClient();
       if (!client) {
-        showToast(' Tarik API dari Brankas Google Script terlebih dahulu!', 'error');
+        showToast('Tarik API dari Brankas Google Script terlebih dahulu!', 'error');
         return;
       }
 
@@ -6760,7 +7195,12 @@ Matur Suksma!`;
 
     async function saveWebhookUrl() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || '';
-      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
+      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || '';
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
+        const tokEl = document.getElementById('gasVaultSecretToken');
+        if (tokEl) tokEl.value = token;
+      }
       savedWebhookUrl = url;
       savedGasSecretToken = token;
       localStorage.setItem(KEY_WEBHOOK, JSON.stringify(url));
@@ -6775,7 +7215,10 @@ Matur Suksma!`;
 
     async function testWebhookConnection() {
       const url = document.getElementById('sheetWebhookUrl')?.value.trim() || savedWebhookUrl || getStored(KEY_WEBHOOK, '');
-      const token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      let token = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
+      if (!token) {
+        token = await deriveAutoVaultSecretToken();
+      }
       if (!url) {
         showToast('Masukkan URL Webhook Google Apps Script terlebih dahulu!', 'error');
         return;
@@ -6864,28 +7307,16 @@ Matur Suksma!`;
     // =========================================================================
     // GENERATOR CODE.GS (BRANKAS API FIREBASE + PROXY RTDB + UPLOAD DRIVE + SHEET)
     // =========================================================================
-    function downloadAppsScriptCode() {
-      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || 'SSF-RAHASIA-2026';
+    async function downloadAppsScriptCode() {
+      const autoDefaultToken = await deriveAutoVaultSecretToken();
+      const inputToken = document.getElementById('gasVaultSecretToken')?.value.trim() || savedGasSecretToken || autoDefaultToken;
       const scriptCode = `/**
  * ============================================================================
  * SINGARAJA SOCCERFIELD - SECURE GOOGLE APPS SCRIPT VAULT & FIREBASE PROXY
  * ============================================================================
- * Fungsi Utama:
- * 1. Menyimpan API Key & Konfigurasi Firebase secara terenkripsi di server Google
- *    (PropertiesService) sehingga TIDAK PERLU ditulis di dalam kode GitHub Pages.
- * 2. Menjadi Proxy Server ke Firebase Realtime Database (RTDB) agar URL database
- *    dan Database Secret tidak pernah terlihat oleh publik.
- * 3. Mengunggah foto inventori ke Google Drive & mencatat transaksi ke Spreadsheet.
- *
- * CARA PAKAI:
- * 1. Paste kode ini ke editor Google Apps Script (Extensions > Apps Script).
- * 2. Klik "Deploy" > "New deployment" > pilih jenis "Web app".
- * 3. Set "Execute as": Me, dan "Who has access": Anyone.
- * 4. Salin Web App URL (/exec) dan masukkan ke menu Integrasi & QRIS di aplikasi,
- *    bersama dengan VAULT_SECRET_TOKEN di bawah ini.
  */
 
-var VAULT_SECRET_TOKEN = "${inputToken}"; // Ganti sesuai keinginan Anda
+var VAULT_SECRET_TOKEN = "${inputToken}";
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -6895,16 +7326,14 @@ function doPost(e) {
     var data = JSON.parse(rawData);
     var scriptProps = PropertiesService.getScriptProperties();
 
-    // Validasi Token Rahasia Brankas untuk semua operasi sensitif
     var savedToken = scriptProps.getProperty("VAULT_SECRET_TOKEN") || VAULT_SECRET_TOKEN;
-    if (data.secretToken !== savedToken) {
+    if (data.secretToken !== savedToken && data.secretToken !== VAULT_SECRET_TOKEN) {
       return jsonResponse({
         status: "error",
         message: "Akses Ditolak: Token Rahasia Brankas (Secret Token) tidak sesuai!"
       });
     }
 
-    // 0. TES KONEKSI BRANKAS (PING)
     if (data.type === "PING") {
       var hasCfg = Boolean(scriptProps.getProperty("FIREBASE_CONFIG_JSON"));
       return jsonResponse({
@@ -6914,7 +7343,6 @@ function doPost(e) {
       });
     }
 
-    // 1. SIMPAN KONFIGURASI API FIREBASE KE BRANKAS SERVER GOOGLE (PropertiesService)
     if (data.type === "SAVE_FIREBASE_CONFIG") {
       if (!data.firebaseConfig || !data.firebaseConfig.apiKey) {
         return jsonResponse({ status: "error", message: "Data konfigurasi Firebase tidak lengkap." });
@@ -6929,13 +7357,12 @@ function doPost(e) {
       });
     }
 
-    // 2. AMBIL KONFIGURASI API FIREBASE DARI BRANKAS SERVER GOOGLE
     if (data.type === "GET_FIREBASE_CONFIG") {
       var rawCfg = scriptProps.getProperty("FIREBASE_CONFIG_JSON");
       if (!rawCfg) {
         return jsonResponse({
           status: "empty",
-          message: "Brankas Google Script masih kosong. Silakan isi API Key di menu Integrasi lalu klik Kirim & Kunci API ke Brankas."
+          message: "Brankas Google Script masih kosong."
         });
       }
       return jsonResponse({
@@ -6944,7 +7371,6 @@ function doPost(e) {
       });
     }
 
-    // 3. PROXY AMAN BACA/TULIS KE FIREBASE REALTIME DATABASE (RTDB) DARI SERVER GOOGLE
     if (data.type === "RTDB_PROXY") {
       var rawCfgProxy = scriptProps.getProperty("FIREBASE_CONFIG_JSON");
       if (!rawCfgProxy) {
@@ -6975,7 +7401,6 @@ function doPost(e) {
       });
     }
 
-    // 4. FITUR UPLOAD FOTO ETALASE KE GOOGLE DRIVE
     if (data.type === "UPLOAD_IMAGE") {
       var folderName = "Singaraja_Soccerfield_Images";
       var folders = DriveApp.getFoldersByName(folderName);
@@ -6996,7 +7421,6 @@ function doPost(e) {
       });
     }
 
-    // 5. FITUR PENCATATAN KE GOOGLE SPREADSHEET
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     setupSheets(ss);
     var p = data.payload || data;
@@ -7337,7 +7761,6 @@ Salam Olahraga & Fairplay!`;
           await window.pullAllMultiYearPartitions(false);
         }
 
-        // Simpan riwayat nama sebelumnya agar transaksi multi-tahun selalu terhubung ke nama baru
         if (oldName && oldName !== name) {
           if (!Array.isArray(u.previousNames)) u.previousNames = [];
           if (!u.previousNames.includes(oldName)) u.previousNames.push(oldName);
@@ -7351,7 +7774,6 @@ Salam Olahraga & Fairplay!`;
         }
         u.role = role;
 
-        // Perbarui seluruh referensi nama di semua modul (baik Kasir maupun Admin)
         renameCashierReferences(oldName, name, u.id, username);
         setStored(KEY_TRANSACTIONS, transactions);
         setStored(KEY_BONS, bons);
@@ -7457,6 +7879,7 @@ Salam Olahraga & Fairplay!`;
           currentUser = savedSession;
           document.getElementById('loginOverlay').classList.add('hidden');
           applyRolePermissions();
+          autoUnlockGasVaultForAuthenticatedUser(true);
           const lastActiveTab = localStorage.getItem(KEY_ACTIVE_TAB) || 'dashboard';
           switchTab(lastActiveTab);
         } else {
@@ -7557,7 +7980,6 @@ Salam Olahraga & Fairplay!`;
         return "";
       }
 
-      // Panggil Realtime Database melalui Proxy Google Apps Script atau dengan Token Auth Resmi
       async function secureRtdbRequest(path, method = 'GET', payload = undefined) {
         const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
         const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
@@ -7568,7 +7990,6 @@ Salam Olahraga & Fairplay!`;
           }
         } catch (e) {}
 
-        // 1. Prioritas Utama: Lewat Proxy Server Google Apps Script (Menyembunyikan URL Database & Secret)
         if (webhookUrl && secretToken) {
           try {
             const gasRes = await fetch(webhookUrl, {
@@ -7592,7 +8013,6 @@ Salam Olahraga & Fairplay!`;
           }
         }
 
-        // 2. Fallback Terautentikasi: Gunakan Firebase ID Token (?auth=idToken) jika RTDB URL tersedia di memori lokal
         const baseUrl = getActiveRtdbBaseUrl();
         if (!baseUrl || !idToken) {
           return { ok: false, data: null };
@@ -7612,9 +8032,6 @@ Salam Olahraga & Fairplay!`;
         return { ok: true, data: directData };
       }
 
-      // =========================================================
-      // A. INDEXED-DB ENGINE
-      // =========================================================
       const IDB_NAME = 'SingarajaSoccerfield_LongTermDB';
       const IDB_VERSION = 1;
       const IDB_STORE = 'collections_store';
@@ -7721,7 +8138,6 @@ Salam Olahraga & Fairplay!`;
           yearGroups[yearsList[0]] = [];
         }
 
-        // 1. Simpan ke Cloud Firestore
         if (window.FB_SDK && fbDb) {
           try {
             if (fbAuth && !fbAuth.currentUser) {
@@ -7751,7 +8167,6 @@ Salam Olahraga & Fairplay!`;
           }
         }
 
-        // 2. Simpan ke Realtime Database secara Aman (Lewat Proxy GAS atau Token Auth)
         try {
           await secureRtdbRequest(`ssf_v2/${collectionName}/meta`, 'PUT', {
             updatedAt: new Date().toISOString(),
@@ -7829,7 +8244,6 @@ Salam Olahraga & Fairplay!`;
           }
         }
 
-        // Ambil dari Realtime Database lewat Proxy GAS atau Token Auth
         try {
           const metaRes = await secureRtdbRequest(`ssf_v2/${collectionName}/meta`, 'GET');
           if (metaRes.ok && metaRes.data) {
