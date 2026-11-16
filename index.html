@@ -899,7 +899,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label class="text-slate-400 block mb-1 font-semibold">Nomor Invoice *</label>
-                <input type="text" id="invNumber" value="#INV-311026" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500">
+                <input type="text" id="invNumber" value="#INV-001" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:outline-none focus:border-emerald-500">
               </div>
               <div>
                 <label class="text-slate-400 block mb-1 font-semibold">Tanggal Transaksi *</label>
@@ -907,7 +907,7 @@
               </div>
               <div>
                 <label class="text-slate-400 block mb-1 font-semibold">Nama Pemain / Tim / Instansi (Yth.) *</label>
-                <input type="text" id="invCustomerName" placeholder="Contoh: HIPMI BULELENG" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-emerald-500">
+                <input type="text" id="invCustomerName" oninput="updateInvoiceLivePreview()" placeholder="Masukkan nama tim / penyewa" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-emerald-500">
               </div>
               <div>
                 <label class="text-slate-400 block mb-1 font-semibold">No. WhatsApp Pemain (Opsional)</label>
@@ -976,7 +976,7 @@
           <div class="lg:col-span-5 bg-white text-slate-900 p-6 rounded-3xl shadow-2xl space-y-4 font-sans border border-slate-200">
             <div class="flex justify-between items-start border-b border-slate-200 pb-4">
               <div>
-                <h3 class="text-xl font-black text-slate-900 tracking-tight" id="prevInvNumberDisplay">Invoice #INV-311026</h3>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight" id="prevInvNumberDisplay">Invoice #INV-001</h3>
                 <div class="text-[11px] text-slate-600 mt-1 space-y-0.5">
                   <p class="font-bold text-slate-800">Singaraja Soccerfield</p>
                   <p>087888444427 &bull; Singarajasoccerfield@gmail.com</p>
@@ -990,10 +990,10 @@
 
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1">
               <div class="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">INVOICE UNTUK:</div>
-              <div class="font-black text-slate-900 text-sm" id="prevInvCustomer">Yth. HIPMI BULELENG</div>
+              <div class="font-black text-slate-900 text-sm" id="prevInvCustomer">Yth. Penyewa Lapangan</div>
               <div class="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
                 <span>Tanggal Transaksi:</span>
-                <span class="font-mono font-bold text-slate-900" id="prevInvDate">31-10-2026</span>
+                <span class="font-mono font-bold text-slate-900" id="prevInvDate">-</span>
               </div>
               <div class="flex justify-between text-slate-600">
                 <span>Status Pembayaran:</span>
@@ -2026,7 +2026,7 @@
       <div class="space-y-3 text-xs">
         <div class="flex items-center gap-4">
           <div class="w-20 h-20 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-            <img id="productPreviewImg" src="https://placehold.co/150x150/1e293b/94a3b8?text=Foto" alt="Foto" class="w-full h-full object-cover">
+            <img id="productPreviewImg" src="https://placehold.co/150x150/1e293b/94a3b8?text=Foto" onerror="handleProductImgError(this)" alt="Foto" class="w-full h-full object-cover">
             <div id="productImgUploadSpinner" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center text-emerald-400">
               <svg class="animate-spin h-6 w-6 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -2402,7 +2402,7 @@
   <div id="invoicePrintArea" class="hidden">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #1f2c33; padding-bottom: 15px;">
       <div>
-        <h1 style="font-size: 22px; font-weight: 900; margin: 0; color: #111827; letter-spacing: -0.5px;" id="a4InvHeaderTitle">Invoice #INV-311026</h1>
+        <h1 style="font-size: 22px; font-weight: 900; margin: 0; color: #111827; letter-spacing: -0.5px;" id="a4InvHeaderTitle">Invoice #INV-001</h1>
         <p style="font-size: 13px; font-weight: bold; color: #1f2c33; margin: 4px 0 2px 0;">Singaraja Soccerfield</p>
         <p style="font-size: 11px; color: #4b5563; margin: 2px 0;">087888444427 &bull; Singarajasoccerfield@gmail.com</p>
         <p style="font-size: 10.5px; color: #4b5563; margin: 2px 0;">Gg. Pulau Dewata, Pemaron, Kec. Buleleng, Kab. Buleleng, Bali</p>
@@ -2414,9 +2414,9 @@
 
     <div style="margin-bottom: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px;">
       <div style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">INVOICE untuk:</div>
-      <div style="font-size: 16px; font-weight: 800; color: #111827; margin-bottom: 8px;" id="a4InvCustomer">Yth. HIPMI BULELENG</div>
+      <div style="font-size: 16px; font-weight: 800; color: #111827; margin-bottom: 8px;" id="a4InvCustomer">Yth. Penyewa Lapangan</div>
       <div style="display: flex; justify-content: space-between; font-size: 12px; color: #374151; border-top: 1px solid #e5e7eb; padding-top: 6px;">
-        <div>Tanggal Transaksi : <strong id="a4InvDate">31-10-2026</strong></div>
+        <div>Tanggal Transaksi : <strong id="a4InvDate">-</strong></div>
         <div>Status Pembayaran: <strong style="color: #047857;" id="a4InvStatus">LUNAS</strong></div>
       </div>
       <div style="font-size: 11.5px; color: #4b5563; margin-top: 4px;">
@@ -2451,7 +2451,7 @@
       <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
         <tr>
           <td style="padding: 6px 0; color: #4b5563;">Sub Total</td>
-          <td style="padding: 6px 0; text-align: right; font-family: monospace; font-weight: bold;" id="a4InvSubtotal">Rp 14.000.000</td>
+          <td style="padding: 6px 0; text-align: right; font-family: monospace; font-weight: bold;" id="a4InvSubtotal">Rp 0</td>
         </tr>
         <tr>
           <td style="padding: 6px 0; color: #4b5563;">Jasa Tambahan</td>
@@ -2471,7 +2471,7 @@
         </tr>
         <tr style="border-top: 2px solid #111827;">
           <td style="padding: 8px 0; font-weight: 800; font-size: 13.5px; color: #111827;">Total Pembayaran</td>
-          <td style="padding: 8px 0; text-align: right; font-family: monospace; font-weight: 900; font-size: 14px; color: #047857;" id="a4InvTotal">Rp 14.000.000</td>
+          <td style="padding: 8px 0; text-align: right; font-family: monospace; font-weight: 900; font-size: 14px; color: #047857;" id="a4InvTotal">Rp 0</td>
         </tr>
       </table>
     </div>
@@ -2513,8 +2513,58 @@
       'TRX-101', 'TRX-102',
       'BON-101',
       'BKG-101', 'BKG-102',
-      'EXP-101', 'EXP-102'
+      'EXP-101', 'EXP-102',
+      'EMP-1', 'EMP-2', 'EMP-3', 'EMP-4', 'EMP-5'
     ]);
+
+    // Deteksi item produk dummy bawaan lama yang belum pernah diubah (agar tidak menimpa database)
+    const LEGACY_DUMMY_PRODUCT_SIGNATURES = new Map([
+      ['PRD-1', 'Pocari Sweat 500ml'],
+      ['PRD-2', 'Aqua 600ml Dingin'],
+      ['PRD-3', 'Teh Pucuk Harum'],
+      ['PRD-4', 'Kacang Garuda Renceng'],
+      ['PRD-5', 'Indomie Goreng + Telur'],
+      ['PRD-6', 'Kaos Kaki Bola AVO'],
+      ['PRD-7', 'Sewa Rompi Tim (1 Set)']
+    ]);
+
+    function isUntouchedDummyProduct(item) {
+      if (!item || !item.id) return false;
+      const expectedName = LEGACY_DUMMY_PRODUCT_SIGNATURES.get(String(item.id));
+      if (!expectedName) return false;
+      const imgStr = String(item.img || '');
+      const hasDummyPlaceholder = !imgStr || imgStr.includes('placehold.co');
+      return hasDummyPlaceholder && String(item.name || '').trim() === expectedName;
+    }
+
+    function resolveProductImageSrc(imgUrl, fallbackName = 'Barang') {
+      const clean = String(imgUrl || '').trim();
+      if (!clean) {
+        return 'https://placehold.co/200x200/0f172a/34d399?text=' + encodeURIComponent(fallbackName);
+      }
+      // Konversi link Google Drive thumbnail/file ke CDN lh3.googleusercontent.com agar selalu muncul di semua perangkat
+      const driveIdMatch = clean.match(/(?:drive\.google\.com\/(?:thumbnail\?id=|file\/d\/|open\?id=|uc\?.*id=)|lh3\.googleusercontent\.com\/d\/)([a-zA-Z0-9_-]{15,})/);
+      if (driveIdMatch && driveIdMatch[1]) {
+        return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}=w600`;
+      }
+      return clean;
+    }
+
+    function handleProductImgError(imgEl) {
+      if (!imgEl) return;
+      const currentSrc = imgEl.getAttribute('src') || '';
+      const driveIdMatch = currentSrc.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]{15,})/);
+      if (driveIdMatch && driveIdMatch[1] && !imgEl.dataset.triedDriveThumb) {
+        imgEl.dataset.triedDriveThumb = '1';
+        imgEl.src = `https://drive.google.com/thumbnail?id=${driveIdMatch[1]}&sz=w600`;
+        return;
+      }
+      if (!imgEl.dataset.triedPlaceholder) {
+        imgEl.dataset.triedPlaceholder = '1';
+        const label = imgEl.getAttribute('alt') || 'Barang';
+        imgEl.src = 'https://placehold.co/200x200/0f172a/34d399?text=' + encodeURIComponent(label);
+      }
+    }
 
     function getStored(key, fallback) {
       try {
@@ -2549,14 +2599,12 @@
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // Fungsi pembangkit Token Rahasia Brankas Otomatis (Menggunakan kode rahasia resmi SSF-RAHASIA-2026)
     async function deriveAutoVaultSecretToken() {
       return DEFAULT_GAS_SECRET_TOKEN;
     }
 
     let isVaultSyncInProgress = false;
 
-    // Aktifkan dan isi otomatis URL Google Script & Token Rahasia Brankas di latar belakang (Non-Blocking)
     async function autoUnlockGasVaultForAuthenticatedUser(triggerCloudFetch = true) {
       if (isVaultSyncInProgress) return savedGasSecretToken;
       isVaultSyncInProgress = true;
@@ -2579,7 +2627,6 @@
         const loginTokIn = document.getElementById('loginGasTokenInput');
         if (loginTokIn) loginTokIn.value = savedGasSecretToken;
 
-        // Jalankan sinkronisasi cloud di latar belakang tanpa menahan layar login
         if (triggerCloudFetch && savedWebhookUrl) {
           if (!isCloudReady || !firebaseConfig || !firebaseConfig.apiKey) {
             await fetchFirebaseConfigFromGasVault(false);
@@ -2599,36 +2646,19 @@
       }
     }
 
-    // Hash SHA-256 untuk akun default (admin / admin123 & kasir1, kasir2 / 1234)
+    // Hash SHA-256 untuk akun default (admin / admin123)
     const defaultUsers = [
-      { id: 'USR-1', username: 'admin', passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', name: 'Owner / Administrator', role: 'Admin' },
-      { id: 'USR-2', username: 'kasir1', passwordHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', name: 'Kadek Sudarma', role: 'Kasir' },
-      { id: 'USR-3', username: 'kasir2', passwordHash: '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', name: 'Wayan Yoga', role: 'Kasir' }
+      { id: 'USR-1', username: 'admin', passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', name: 'Owner / Administrator', role: 'Admin' }
     ];
 
-    const defaultProducts = [
-      { id: 'PRD-1', name: 'Pocari Sweat 500ml', category: 'MINUMAN', cost: 6000, price: 9000, stock: 45, barcode: '89912345601', img: 'https://placehold.co/200x200/0f172a/34d399?text=Pocari' },
-      { id: 'PRD-2', name: 'Aqua 600ml Dingin', category: 'MINUMAN', cost: 3000, price: 5000, stock: 60, barcode: '89912345602', img: 'https://placehold.co/200x200/0f172a/34d399?text=Aqua' },
-      { id: 'PRD-3', name: 'Teh Pucuk Harum', category: 'MINUMAN', cost: 3500, price: 5000, stock: 32, barcode: '89912345603', img: 'https://placehold.co/200x200/0f172a/34d399?text=Teh+Pucuk' },
-      { id: 'PRD-4', name: 'Kacang Garuda Renceng', category: 'MAKANAN', cost: 1500, price: 3000, stock: 24, barcode: '89912345604', img: 'https://placehold.co/200x200/0f172a/34d399?text=Kacang' },
-      { id: 'PRD-5', name: 'Indomie Goreng + Telur', category: 'MAKANAN', cost: 7000, price: 12000, stock: 40, barcode: '89912345605', img: 'https://placehold.co/200x200/0f172a/34d399?text=Indomie' },
-      { id: 'PRD-6', name: 'Kaos Kaki Bola AVO', category: 'PERLENGKAPAN', cost: 15000, price: 25000, stock: 15, barcode: '89912345606', img: 'https://placehold.co/200x200/0f172a/34d399?text=Kaos+Kaki' },
-      { id: 'PRD-7', name: 'Sewa Rompi Tim (1 Set)', category: 'PERLENGKAPAN', cost: 0, price: 20000, stock: 10, barcode: '89912345607', img: 'https://placehold.co/200x200/0f172a/34d399?text=Rompi' }
-    ];
-
+    // Bebas data dummy: array bawaan dimulai kosong agar tidak pernah menimpa database
+    const defaultProducts = [];
     const defaultTransactions = [];
     const defaultBons = [];
     const defaultBookings = [];
     const defaultExpenses = [];
     const defaultAttendance = [];
-
-    const defaultEmployees = [
-      { id: 'EMP-1', name: 'Kadek Sudarma', role: 'Kasir' },
-      { id: 'EMP-2', name: 'Wayan Yoga', role: 'Penjaga Lapangan' },
-      { id: 'EMP-3', name: 'Made Budi', role: 'Maintenance Lapangan' },
-      { id: 'EMP-4', name: 'Gede Arya', role: 'Fotografer' },
-      { id: 'EMP-5', name: 'Ketut Suwena', role: 'Cleaning Service' }
-    ];
+    const defaultEmployees = [];
 
     const defaultRates = {
       wdMorning: 650000,
@@ -2679,21 +2709,32 @@
 
     function cleanDatasetArray(arr, idKey = 'id') {
       if (!Array.isArray(arr)) return [];
-      return arr.filter(item => item && !isRecordDeletedOrDummy(item[idKey]));
+      return arr.filter(item => {
+        if (!item) return false;
+        if (isRecordDeletedOrDummy(item[idKey])) return false;
+        if (idKey === 'id' && isUntouchedDummyProduct(item)) return false;
+        return true;
+      });
     }
 
-    function mergeUniqueById(localArr, cloudArr, idKey = 'id') {
+    // preferCloud = true memastikan data terbaru dari Database Cloud selalu menang atas cache lokal/perangkat baru
+    function mergeUniqueById(localArr, cloudArr, idKey = 'id', preferCloud = true) {
       const map = new Map();
-      if (Array.isArray(cloudArr)) {
-        cloudArr.forEach(item => {
+      const firstArr = preferCloud ? localArr : cloudArr;
+      const secondArr = preferCloud ? cloudArr : localArr;
+
+      if (Array.isArray(firstArr)) {
+        firstArr.forEach(item => {
           if (item && item[idKey] && !isRecordDeletedOrDummy(item[idKey])) {
+            if (idKey === 'id' && isUntouchedDummyProduct(item)) return;
             map.set(String(item[idKey]), item);
           }
         });
       }
-      if (Array.isArray(localArr)) {
-        localArr.forEach(item => {
+      if (Array.isArray(secondArr)) {
+        secondArr.forEach(item => {
           if (item && item[idKey] && !isRecordDeletedOrDummy(item[idKey])) {
+            if (idKey === 'id' && isUntouchedDummyProduct(item)) return;
             map.set(String(item[idKey]), item);
           }
         });
@@ -2722,6 +2763,8 @@
     let closings = cleanDatasetArray(getStored(KEY_CLOSINGS, []), 'id');
 
     try {
+      localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
+      localStorage.setItem(KEY_EMPLOYEES, JSON.stringify(employees));
       localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
       localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
     } catch (e) {}
@@ -2803,19 +2846,16 @@
         const recUsername = recordOrName.cashierUsername || recordOrName.username;
         const rawName = String(recordOrName.cashier || recordOrName.cashierName || recordOrName.recordedBy || '').trim();
 
-        // 1. Cocokkan berdasarkan ID Akun User (Paling Akurat)
         if (recId) {
           const byId = users.find(u => u && String(u.id) === String(recId));
           if (byId && byId.name) return byId.name;
         }
 
-        // 2. Cocokkan berdasarkan Username Login
         if (recUsername) {
           const byUname = users.find(u => u && u.username && u.username.toLowerCase() === String(recUsername).toLowerCase());
           if (byUname && byUname.name) return byUname.name;
         }
 
-        // 3. Cocokkan untuk data transaksi lama berdasarkan riwayat nama / username
         if (rawName) {
           const lowerRaw = rawName.toLowerCase();
           const byMatch = users.find(u =>
@@ -2849,7 +2889,6 @@
       return fallbackName;
     }
 
-    // Sinkronkan objek currentUser aktif dengan daftar users terbaru
     function syncCurrentUserProfile() {
       if (!currentUser || !Array.isArray(users)) return;
       const latestUser = users.find(u =>
@@ -2869,7 +2908,6 @@
       }
     }
 
-    // Helper fungsi tanggal lokal perangkat (WITA/WIB/WIT YYYY-MM-DD) bebas bug selisih zona waktu UTC
     function getLocalDateString(val = new Date()) {
       if (!val) return '';
       if (typeof val === 'string') {
@@ -2939,7 +2977,6 @@
       if (userObj.passwordHash && userObj.passwordHash === inputHash) {
         return true;
       }
-      // Kompatibilitas mundur jika data user lama masih memiliki field password biasa, lalu migrasi otomatis ke SHA-256
       if (userObj.password && String(userObj.password) === String(plainInput)) {
         userObj.passwordHash = inputHash;
         delete userObj.password;
@@ -2966,7 +3003,6 @@
         users = [...defaultUsers];
       }
 
-      // Hitung hash SHA-256 satu kali saja agar pengecekan user instan
       const inputHash = await sha256Hex(passwordInput);
       const lowerUsername = usernameInput.toLowerCase();
 
@@ -3006,7 +3042,6 @@
         username: foundUser.username
       };
 
-      // Simpan sesi secara lokal & langsung buka tampilan aplikasi secara instan (tanpa menunggu jaringan)
       try {
         localStorage.setItem(KEY_AUTH_SESSION, JSON.stringify(currentUser));
       } catch (e) {}
@@ -3018,7 +3053,6 @@
       switchTab(lastActiveTab);
       showToast(`Selamat datang, ${currentUser.name} (${currentUser.role})!`, 'success');
 
-      // Jalankan pembukaan brankas & sinkronisasi database di latar belakang (non-blocking)
       autoUnlockGasVaultForAuthenticatedUser(true);
     }
 
@@ -3162,7 +3196,10 @@
       });
 
       if (tabId === 'dashboard') renderDashboard();
-      if (tabId === 'pos') renderPosCatalog();
+      if (tabId === 'pos') {
+        renderPosCatalog();
+        if (isCloudReady) pullLatestDataFromFirebaseCloud().catch(() => {});
+      }
       if (tabId === 'sales-report') initSalesReportPage();
       if (tabId === 'invoice') initInvoicePage();
       if (tabId === 'booking') renderBookingList();
@@ -3170,7 +3207,10 @@
       if (tabId === 'expenses') renderExpenseTable();
       if (tabId === 'attendance') renderAttendancePage();
       if (tabId === 'closing') renderClosingDashboard();
-      if (tabId === 'inventory') renderInventoryTable();
+      if (tabId === 'inventory') {
+        renderInventoryTable();
+        if (isCloudReady) pullLatestDataFromFirebaseCloud().catch(() => {});
+      }
       if (tabId === 'rates') renderRatesInputs();
       if (tabId === 'integration') renderIntegrationSettings();
       if (tabId === 'users') renderUsersTable();
@@ -3182,20 +3222,13 @@
     // INVOICE BUILDER
     // ==========================================
     let invoiceItems = [
-      { id: 1, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: '2026-11-11', time: '15.00-20.00', price: 3500000 },
-      { id: 2, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: '2026-11-13', time: '15.00-20.00', price: 3500000 },
-      { id: 3, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: '2026-11-14', time: '15.00-20.00', price: 3500000 },
-      { id: 4, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: '2026-11-15', time: '15.00-20.00', price: 3500000 }
+      { id: 1, activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: getLocalDateString(new Date()), time: '16.00-18.00', price: 1600000 }
     ];
 
     function initInvoicePage() {
       const dateInput = document.getElementById('invDate');
       if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().slice(0, 10);
-      }
-      const custInput = document.getElementById('invCustomerName');
-      if (custInput && !custInput.value) {
-        custInput.value = 'HIPMI BULELENG';
+        dateInput.value = getLocalDateString(new Date());
       }
       renderInvoiceItemInputs();
       updateInvoiceLivePreview();
@@ -3246,7 +3279,7 @@
 
     function addInvoiceItemRow() {
       const newId = Date.now();
-      const lastItem = invoiceItems[invoiceItems.length - 1] || { activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: new Date().toISOString().slice(0, 10), time: '15.00-20.00', price: 3500000 };
+      const lastItem = invoiceItems[invoiceItems.length - 1] || { activity: 'Mini Soccer', product: 'Singaraja Soccerfield', date: getLocalDateString(new Date()), time: '16.00-18.00', price: 1600000 };
       invoiceItems.push({
         id: newId,
         activity: lastItem.activity,
@@ -3277,9 +3310,9 @@
     }
 
     function updateInvoiceLivePreview() {
-      const invNum = document.getElementById('invNumber')?.value || '#INV-000';
-      const custName = document.getElementById('invCustomerName')?.value || 'Nama Pemain / Tim';
-      const rawDate = document.getElementById('invDate')?.value || new Date().toISOString().slice(0, 10);
+      const invNum = document.getElementById('invNumber')?.value || '#INV-001';
+      const custName = document.getElementById('invCustomerName')?.value || 'Penyewa Lapangan';
+      const rawDate = document.getElementById('invDate')?.value || getLocalDateString(new Date());
       const status = document.getElementById('invPaymentStatus')?.value || 'LUNAS';
       const method = document.getElementById('invPaymentMethod')?.value || 'TRF BCA';
 
@@ -3472,13 +3505,11 @@ Matur Suksma!`;
           selectCashier.classList.remove('opacity-70', 'cursor-not-allowed');
           const prevVal = selectCashier.value || 'ALL';
 
-          // Daftar utama diambil langsung dari Nama Lengkap User Terdaftar
           const registeredOptions = (users || []).map(u => ({
             val: `ID:${u.id}`,
             label: `${u.name} (${u.role})`
           }));
 
-          // Tambahkan nama kasir historis jika ada transaksi dari akun yang sudah dihapus
           const registeredNamesSet = new Set((users || []).map(u => (u.name || '').trim().toLowerCase()));
           const extraLegacyNames = [];
           (transactions || []).forEach(t => {
@@ -3801,10 +3832,12 @@ Matur Suksma!`;
         return;
       }
 
-      grid.innerHTML = filtered.map(p => `
+      grid.innerHTML = filtered.map(p => {
+        const imgSrc = resolveProductImageSrc(p.img, p.name);
+        return `
         <div onclick="addToCart('${p.id}')" class="bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] shadow-sm group">
           <div class="w-full h-28 rounded-xl bg-slate-950 overflow-hidden mb-2 relative">
-            <img src="${p.img || 'https://placehold.co/200x200/0f172a/34d399?text=Barang'}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+            <img src="${imgSrc}" onerror="handleProductImgError(this)" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
             <span class="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold ${p.stock <= 5 ? 'bg-rose-500/90 text-white' : 'bg-slate-900/80 text-emerald-400 backdrop-blur-sm'}">
               Stok: ${p.stock}
             </span>
@@ -3820,7 +3853,8 @@ Matur Suksma!`;
             </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       try { lucide.createIcons(); } catch (e) {}
     }
@@ -3955,7 +3989,6 @@ Matur Suksma!`;
         return;
       }
 
-      // Hentikan suara speaker sebelum membuka mikrofon agar tidak terjadi echo
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -4082,7 +4115,6 @@ Matur Suksma!`;
         return;
       }
 
-      // 1. Perintah suara: Kosongkan Keranjang
       if (transcript.includes('kosongkan keranjang') || transcript.includes('hapus semua') || transcript.includes('reset keranjang')) {
         clearCart();
         playItemNameVoice('Keranjang dikosongkan', resumeHandsFreeIfNeeded);
@@ -4090,7 +4122,6 @@ Matur Suksma!`;
         return;
       }
 
-      // 2. Perintah suara: Cek Total Tagihan Keranjang
       if (transcript.includes('total berapa') || transcript.includes('berapa totalnya') || transcript.includes('cek keranjang')) {
         const totalNow = getCartTotal();
         const countNow = cart.reduce((s, i) => s + i.qty, 0);
@@ -4102,7 +4133,6 @@ Matur Suksma!`;
         return;
       }
 
-      // 3. Perintah suara: Checkout Tunai / QRIS / Bon
       if (transcript.includes('bayar tunai') || transcript.includes('bayar cash') || transcript.includes('uang pas')) {
         isHandsFreeVoiceMode = false;
         openPaymentModal('CASH');
@@ -4122,7 +4152,6 @@ Matur Suksma!`;
         return;
       }
 
-      // 4. Perintah suara: Kurangi / Hapus barang tertentu dari keranjang
       if (/^(kurangi|hapus|batal)\b/i.test(transcript)) {
         const { qty, cleanSegment } = parseSpokenQuantityAndName(transcript);
         const matchedProd = findBestProductMatch(cleanSegment);
@@ -4144,7 +4173,6 @@ Matur Suksma!`;
         }
       }
 
-      // 5. Pecah kalimat jika menyebut beberapa barang sekaligus ("pocari 2 sama aqua 1")
       const segments = transcript.split(/\b(?:dan|sama|terus|lalu|ditambah|plus|serta)\b|,/g)
         .map(s => s.trim())
         .filter(Boolean);
@@ -5979,12 +6007,9 @@ Matur Suksma!`;
     // ==========================================
     function ensureEmployeesListPopulated() {
       if (!Array.isArray(employees)) {
-        employees = [...defaultEmployees];
+        employees = [];
       }
       employees = cleanDatasetArray(employees, 'id');
-      if (employees.length === 0) {
-        employees = [...defaultEmployees.filter(e => !isRecordDeletedOrDummy(e.id))];
-      }
     }
 
     function renderAttendancePage() {
@@ -5994,11 +6019,15 @@ Matur Suksma!`;
       const select = document.getElementById('attEmployeeSelect');
       if (select) {
         const prevSelected = select.value;
-        select.innerHTML = employees.map(emp => `
-          <option value="${emp.name}">${emp.name} (${emp.role})</option>
-        `).join('');
-        if (prevSelected && employees.some(e => e.name === prevSelected)) {
-          select.value = prevSelected;
+        if (employees.length > 0) {
+          select.innerHTML = employees.map(emp => `
+            <option value="${emp.name}">${emp.name} (${emp.role})</option>
+          `).join('');
+          if (prevSelected && employees.some(e => e.name === prevSelected)) {
+            select.value = prevSelected;
+          }
+        } else {
+          select.innerHTML = `<option value="">-- Belum ada data karyawan (Tambah di Kelola Nama Karyawan) --</option>`;
         }
       }
 
@@ -6090,6 +6119,11 @@ Matur Suksma!`;
     function renderEmployeeListModal() {
       const container = document.getElementById('empListContainer');
       if (!container) return;
+
+      if (employees.length === 0) {
+        container.innerHTML = `<div class="py-6 text-center text-xs text-slate-500">Belum ada data karyawan terdaftar. Tambahkan karyawan baru di form atas.</div>`;
+        return;
+      }
 
       container.innerHTML = employees.map(emp => `
         <div class="py-2.5 flex items-center justify-between text-xs">
@@ -6200,10 +6234,12 @@ Matur Suksma!`;
         return;
       }
 
-      body.innerHTML = products.map(p => `
+      body.innerHTML = products.map(p => {
+        const imgSrc = resolveProductImageSrc(p.img, p.name);
+        return `
         <tr class="hover:bg-slate-800/40">
           <td class="p-4">
-            <img src="${p.img || 'https://placehold.co/100x100/1e293b/94a3b8?text=Foto'}" class="w-10 h-10 rounded-xl object-cover bg-slate-950">
+            <img src="${imgSrc}" onerror="handleProductImgError(this)" alt="${p.name}" class="w-10 h-10 rounded-xl object-cover bg-slate-950">
           </td>
           <td class="p-4 font-bold text-white whitespace-nowrap">${p.name}</td>
           <td class="p-4 font-mono text-slate-400 text-xs">${p.barcode || '-'}</td>
@@ -6220,14 +6256,15 @@ Matur Suksma!`;
             </button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
 
       try { lucide.createIcons(); } catch (e) {}
     }
 
     let isProductImageUploading = false;
 
-    function setProductSaveButtonLoading(loading, statusText) {
+    function setProductSaveButtonLoading(loading, statusText, customBtnLabel = 'Simpan Barang') {
       isProductImageUploading = loading;
       const btn = document.getElementById('btnSaveProduct');
       const btnText = document.getElementById('btnSaveProductText');
@@ -6243,11 +6280,11 @@ Matur Suksma!`;
           btn.classList.add('bg-slate-700', 'text-slate-400', 'cursor-not-allowed', 'opacity-70');
         }
         if (btnText) {
-          btnText.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg> Menunggu Upload Google Drive...</span>';
+          btnText.innerHTML = `<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg> ${customBtnLabel}</span>`;
         }
         if (spinner) spinner.classList.remove('hidden');
-        if (uploadStatus) {
-          uploadStatus.innerHTML = '<span class="text-amber-400 font-semibold animate-pulse">⏳ Sedang mengunggah ke Google Drive...</span>';
+        if (uploadStatus && statusText) {
+          uploadStatus.innerHTML = statusText;
         }
         if (fileInput) fileInput.disabled = true;
         if (lblInput) lblInput.classList.add('opacity-50', 'pointer-events-none');
@@ -6258,7 +6295,7 @@ Matur Suksma!`;
           btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'shadow-emerald-600/20');
         }
         if (btnText) {
-          btnText.innerText = 'Simpan Barang';
+          btnText.innerText = customBtnLabel;
         }
         if (spinner) spinner.classList.add('hidden');
         if (uploadStatus) {
@@ -6278,8 +6315,13 @@ Matur Suksma!`;
       document.getElementById('prodCost').value = '';
       document.getElementById('prodPrice').value = '';
       document.getElementById('prodStock').value = '';
+      const fileInput = document.getElementById('productImageInput');
+      if (fileInput) fileInput.value = '';
       tempProductImage = '';
-      document.getElementById('productPreviewImg').src = 'https://placehold.co/150x150/1e293b/94a3b8?text=Foto';
+      const previewImg = document.getElementById('productPreviewImg');
+      delete previewImg.dataset.triedDriveThumb;
+      delete previewImg.dataset.triedPlaceholder;
+      previewImg.src = 'https://placehold.co/150x150/1e293b/94a3b8?text=Foto';
       setProductSaveButtonLoading(false, '<span class="text-slate-500">Format JPG, PNG atau WebP</span>');
       openModal('productModal');
     }
@@ -6296,10 +6338,16 @@ Matur Suksma!`;
       document.getElementById('prodCost').value = p.cost || '';
       document.getElementById('prodPrice').value = p.price;
       document.getElementById('prodStock').value = p.stock;
+      const fileInput = document.getElementById('productImageInput');
+      if (fileInput) fileInput.value = '';
       tempProductImage = p.img || '';
-      document.getElementById('productPreviewImg').src = p.img || 'https://placehold.co/150x150/1e293b/94a3b8?text=Foto';
-      setProductSaveButtonLoading(false, tempProductImage && tempProductImage.includes('drive.google.com') 
-        ? '<span class="text-emerald-400 font-semibold">✅ Foto aktif tersimpan di Google Drive</span>'
+      const previewImg = document.getElementById('productPreviewImg');
+      delete previewImg.dataset.triedDriveThumb;
+      delete previewImg.dataset.triedPlaceholder;
+      previewImg.src = resolveProductImageSrc(p.img, p.name);
+      const isCloudImg = tempProductImage && (tempProductImage.includes('drive.google.com') || tempProductImage.includes('googleusercontent.com') || tempProductImage.startsWith('data:image/'));
+      setProductSaveButtonLoading(false, isCloudImg
+        ? '<span class="text-emerald-400 font-semibold">✅ Foto aktif siap disinkronkan ke semua perangkat</span>'
         : '<span class="text-slate-500">Format JPG, PNG atau WebP</span>');
       openModal('productModal');
     }
@@ -6311,8 +6359,14 @@ Matur Suksma!`;
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
       const secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
       const previewImg = document.getElementById('productPreviewImg');
+      delete previewImg.dataset.triedDriveThumb;
+      delete previewImg.dataset.triedPlaceholder;
 
-      setProductSaveButtonLoading(true);
+      setProductSaveButtonLoading(
+        true,
+        '<span class="text-amber-400 font-semibold animate-pulse">⏳ Sedang memproses & mengunggah foto...</span>',
+        'Menunggu Upload Foto...'
+      );
       showToast('Memproses dan mengompres foto barang...', 'info');
 
       const reader = new FileReader();
@@ -6329,7 +6383,7 @@ Matur Suksma!`;
         };
 
         img.onload = async () => {
-          const MAX_SIZE = 500;
+          const MAX_SIZE = 420;
           let width = img.width;
           let height = img.height;
 
@@ -6351,7 +6405,7 @@ Matur Suksma!`;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.78);
           previewImg.src = compressedDataUrl;
 
           if (webhookUrl) {
@@ -6371,24 +6425,27 @@ Matur Suksma!`;
               });
 
               const result = await response.json();
-              if (result && result.status === 'success' && result.fileUrl) {
-                tempProductImage = result.fileUrl;
-                previewImg.src = result.fileUrl;
-                setProductSaveButtonLoading(false, '<span class="text-emerald-400 font-semibold">✅ Foto berhasil diupload ke Google Drive!</span>');
+              if (result && result.status === 'success' && (result.fileId || result.fileUrl)) {
+                const resolvedUrl = result.fileId
+                  ? `https://lh3.googleusercontent.com/d/${result.fileId}=w600`
+                  : resolveProductImageSrc(result.fileUrl);
+                tempProductImage = resolvedUrl;
+                previewImg.src = resolvedUrl;
+                setProductSaveButtonLoading(false, '<span class="text-emerald-400 font-semibold">✅ Foto berhasil diupload ke Google Drive! Klik Simpan Barang.</span>');
                 showToast('✅ Foto barang tersimpan di Google Drive!', 'success');
               } else {
-                throw new Error(result.message || 'Gagal menerima URL file dari Drive');
+                throw new Error((result && result.message) || 'Gagal menerima URL file dari Drive');
               }
             } catch (err) {
-              console.warn('Gagal upload ke Drive, memakai fallback lokal kompresi:', err);
+              console.warn('Gagal upload ke Drive, memakai fallback gambar terkompresi untuk Cloud DB:', err);
               tempProductImage = compressedDataUrl;
-              setProductSaveButtonLoading(false, '<span class="text-amber-400 font-semibold">⚠️ Foto disimpan lokal (Webhook offline)</span>');
-              showToast('Webhook Drive belum merespon. Foto disimpan lokal (terkompresi).', 'info');
+              setProductSaveButtonLoading(false, '<span class="text-emerald-400 font-semibold">✅ Foto terkompresi siap disimpan langsung ke Cloud Database!</span>');
+              showToast('Foto siap disimpan langsung ke Cloud Database.', 'info');
             }
           } else {
             tempProductImage = compressedDataUrl;
-            setProductSaveButtonLoading(false, '<span class="text-amber-400">⚠️ Webhook Drive belum diatur (Tersimpan lokal)</span>');
-            showToast('Foto dikompresi. Atur Webhook di Integrasi untuk upload langsung ke Google Drive.', 'info');
+            setProductSaveButtonLoading(false, '<span class="text-emerald-400 font-semibold">✅ Foto terkompresi siap disimpan ke Cloud Database!</span>');
+            showToast('Foto dikompresi & siap disimpan ke Cloud Database.', 'info');
           }
         };
         img.src = event.target.result;
@@ -6396,9 +6453,9 @@ Matur Suksma!`;
       reader.readAsDataURL(file);
     }
 
-    function saveProductData() {
+    async function saveProductData() {
       if (isProductImageUploading) {
-        showToast('Mohon tunggu, foto sedang diunggah ke Google Drive!', 'error');
+        showToast('Mohon tunggu, foto sedang diproses!', 'error');
         return;
       }
 
@@ -6415,6 +6472,8 @@ Matur Suksma!`;
         return;
       }
 
+      const nowIso = new Date().toISOString();
+
       if (id) {
         const p = products.find(item => item.id === id);
         if (p) {
@@ -6424,29 +6483,51 @@ Matur Suksma!`;
           p.cost = cost;
           p.price = price;
           p.stock = stock;
-          if (tempProductImage) p.img = tempProductImage;
+          p.updatedAt = nowIso;
+          if (tempProductImage) {
+            p.img = tempProductImage;
+          }
         }
       } else {
         products.push({
-          id: 'PRD-' + Date.now().toString().slice(-4),
+          id: 'PRD-' + Date.now().toString().slice(-6),
           name: name,
           category: cat,
           barcode: barcode,
           cost: cost,
           price: price,
           stock: stock,
+          updatedAt: nowIso,
           img: tempProductImage || 'https://placehold.co/200x200/0f172a/34d399?text=' + encodeURIComponent(name)
         });
       }
 
+      setProductSaveButtonLoading(
+        true,
+        '<span class="text-emerald-400 font-semibold animate-pulse">☁️ Menyimpan barang & foto ke Cloud Database...</span>',
+        'Menyimpan ke Cloud...'
+      );
+
       setStored(KEY_PRODUCTS, products);
-      closeModal('productModal');
       renderInventoryTable();
       renderPosCatalog();
-      showToast('Data barang berhasil disimpan!', 'success');
+
+      try {
+        if (!isCloudReady && (savedWebhookUrl || getStored(KEY_WEBHOOK, ''))) {
+          await fetchFirebaseConfigFromGasVault(false);
+        }
+        await window.immediateCloudSync();
+        showToast('✅ Data & gambar barang berhasil disimpan ke Database Cloud!', 'success');
+      } catch (err) {
+        console.warn('Sync product to cloud error:', err);
+        showToast('Barang tersimpan lokal, periksa koneksi Cloud untuk sinkronisasi.', 'info');
+      } finally {
+        setProductSaveButtonLoading(false);
+        closeModal('productModal');
+      }
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (!currentUser || currentUser.role !== 'Admin') {
         showToast('Akses ditolak! Hanya Administrator yang berhak menghapus barang inventori.', 'error');
         return;
@@ -6454,10 +6535,10 @@ Matur Suksma!`;
       markRecordDeleted(id);
       products = products.filter(p => p.id !== id);
       setStored(KEY_PRODUCTS, products);
-      immediateCloudSync();
       renderInventoryTable();
       renderPosCatalog();
-      showToast('Barang berhasil dihapus.', 'info');
+      await immediateCloudSync();
+      showToast('Barang berhasil dihapus dari Database.', 'info');
     }
 
     function exportProductsToExcel() {
@@ -6487,7 +6568,7 @@ Matur Suksma!`;
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (evt) => {
+      reader.onload = async (evt) => {
         try {
           const data = new Uint8Array(evt.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
@@ -6505,7 +6586,7 @@ Matur Suksma!`;
             const price = Number(r['Harga Jual'] || r['price'] || 0);
             if (name && price > 0) {
               products.push({
-                id: 'PRD-' + Date.now().toString().slice(-4) + Math.floor(Math.random() * 100),
+                id: 'PRD-' + Date.now().toString().slice(-5) + Math.floor(Math.random() * 100),
                 name: String(name).trim(),
                 category: (r['Kategori'] || 'MINUMAN').toUpperCase(),
                 barcode: String(r['Barcode'] || ''),
@@ -6521,7 +6602,8 @@ Matur Suksma!`;
           setStored(KEY_PRODUCTS, products);
           renderInventoryTable();
           renderPosCatalog();
-          showToast(`Berhasil mengimpor ${added} barang dari Excel!`, 'success');
+          await immediateCloudSync();
+          showToast(`Berhasil mengimpor ${added} barang dari Excel & disimpan ke Cloud!`, 'success');
         } catch (err) {
           showToast('Gagal membaca file Excel: ' + err.message, 'error');
         }
@@ -6552,6 +6634,7 @@ Matur Suksma!`;
       };
 
       setStored(KEY_RATES, rentalRates);
+      immediateCloudSync();
       showToast('Tarif sewa lapangan berhasil disimpan!', 'success');
     }
 
@@ -6598,7 +6681,6 @@ Matur Suksma!`;
 
     let hasPendingLocalWriteBeforeCloudReady = false;
 
-    // Tarik konfigurasi Firebase dari Brankas Google Apps Script (PropertiesService)
     async function fetchFirebaseConfigFromGasVault(showToastAlert = false) {
       const webhookUrl = savedWebhookUrl || getStored(KEY_WEBHOOK, '');
       let secretToken = savedGasSecretToken || getStored(KEY_GAS_TOKEN, '');
@@ -6635,7 +6717,6 @@ Matur Suksma!`;
           localStorage.setItem(KEY_FIREBASE, JSON.stringify(firebaseConfig));
           renderIntegrationSettings();
 
-          // Hanya inisialisasi ulang Firebase jika belum aktif atau kredensial berubah
           if (!isCloudReady || prevKey !== firebaseConfig.apiKey || prevProj !== firebaseConfig.projectId) {
             fbApp = null;
             fbAuth = null;
@@ -6731,53 +6812,60 @@ Matur Suksma!`;
         if (snap.exists()) {
           const cloudData = snap.data();
           let hasUpdates = false;
+          let cloudHadUntouchedDummy = false;
 
           if (Array.isArray(cloudData.deletedIds)) {
             cloudData.deletedIds.forEach(dId => markRecordDeleted(dId));
           }
 
-          if (Array.isArray(cloudData.products) && cloudData.products.length > 0) {
-            products = mergeUniqueById(products, cloudData.products, 'id');
+          if (Array.isArray(cloudData.products)) {
+            if (cloudData.products.some(p => isUntouchedDummyProduct(p) || isRecordDeletedOrDummy(p?.id))) {
+              cloudHadUntouchedDummy = true;
+            }
+            products = mergeUniqueById(products, cloudData.products, 'id', true);
             localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.transactions)) {
-            transactions = mergeUniqueById(transactions, cloudData.transactions, 'id');
+            transactions = mergeUniqueById(transactions, cloudData.transactions, 'id', true);
             localStorage.setItem(KEY_TRANSACTIONS, JSON.stringify(transactions));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.bookings)) {
-            bookings = mergeUniqueById(bookings, cloudData.bookings, 'bookingId');
+            bookings = mergeUniqueById(bookings, cloudData.bookings, 'bookingId', true);
             localStorage.setItem(KEY_BOOKINGS, JSON.stringify(bookings));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.bons)) {
-            bons = mergeUniqueById(bons, cloudData.bons, 'id');
+            bons = mergeUniqueById(bons, cloudData.bons, 'id', true);
             localStorage.setItem(KEY_BONS, JSON.stringify(bons));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.expenses)) {
-            expenses = mergeUniqueById(expenses, cloudData.expenses, 'id');
+            expenses = mergeUniqueById(expenses, cloudData.expenses, 'id', true);
             localStorage.setItem(KEY_EXPENSES, JSON.stringify(expenses));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.attendance)) {
-            attendance = mergeUniqueById(attendance, cloudData.attendance, 'id');
+            attendance = mergeUniqueById(attendance, cloudData.attendance, 'id', true);
             localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
             hasUpdates = true;
           }
-          if (Array.isArray(cloudData.employees) && cloudData.employees.length > 0) {
-            employees = mergeUniqueById(employees, cloudData.employees, 'id');
+          if (Array.isArray(cloudData.employees)) {
+            if (cloudData.employees.some(e => isRecordDeletedOrDummy(e?.id))) {
+              cloudHadUntouchedDummy = true;
+            }
+            employees = mergeUniqueById(employees, cloudData.employees, 'id', true);
             localStorage.setItem(KEY_EMPLOYEES, JSON.stringify(employees));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.closings)) {
-            closings = mergeUniqueById(closings, cloudData.closings, 'id');
+            closings = mergeUniqueById(closings, cloudData.closings, 'id', true);
             localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
             hasUpdates = true;
           }
           if (Array.isArray(cloudData.users) && cloudData.users.length > 0) {
-            users = mergeUniqueById(users, cloudData.users, 'id');
+            users = mergeUniqueById(users, cloudData.users, 'id', true);
             localStorage.setItem(KEY_USERS, JSON.stringify(users));
             hasUpdates = true;
           }
@@ -6800,7 +6888,10 @@ Matur Suksma!`;
             if (webhookInput) webhookInput.value = savedWebhookUrl;
           }
 
-          await window.FB_SDK.setDoc(syncRef, buildCompleteCloudSyncPayload('CLEAN_MERGE'), { merge: true });
+          // Hanya tulis balik ke Firestore jika ada sisa data dummy lama di cloud yang perlu dibersihkan
+          if (cloudHadUntouchedDummy) {
+            await window.FB_SDK.setDoc(syncRef, buildCompleteCloudSyncPayload('PURGE_DUMMY_CLEANUP'), { merge: true });
+          }
 
           if (hasUpdates) {
             syncCurrentUserProfile();
@@ -6814,7 +6905,7 @@ Matur Suksma!`;
             }
             updateBonBadge();
             renderAttendancePage();
-            renderClosingDashboard();
+            renderClosingDashboard(false);
             renderClosingHistory();
             renderBookingList();
             renderBonTable();
@@ -7432,7 +7523,7 @@ function doPost(e) {
       var file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       
-      var directUrl = "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w600";
+      var directUrl = "https://lh3.googleusercontent.com/d/" + file.getId() + "=w600";
       
       return jsonResponse({
         status: "success",
@@ -7840,8 +7931,10 @@ Salam Olahraga & Fairplay!`;
     }
 
     function deleteUser(id) {
+      markRecordDeleted(id);
       users = users.filter(u => u.id !== id);
       setStored(KEY_USERS, users);
+      immediateCloudSync();
       renderUsersTable();
       showToast('Akun berhasil dihapus.', 'info');
     }
@@ -8212,7 +8305,7 @@ Salam Olahraga & Fairplay!`;
 
         const idbCached = await idbGet('ssf_full_' + collectionName);
         if (Array.isArray(idbCached) && idbCached.length > 0) {
-          combined = mergeUniqueById(combined, idbCached, idField);
+          combined = mergeUniqueById(combined, idbCached, idField, true);
         }
 
         const currentYear = String(new Date().getFullYear());
@@ -8230,7 +8323,7 @@ Salam Olahraga & Fairplay!`;
               const idxData = indexSnap.data();
               if (Array.isArray(idxData.deletedIds)) idxData.deletedIds.forEach(id => markRecordDeleted(id));
               if (Array.isArray(idxData.items)) {
-                combined = mergeUniqueById(combined, idxData.items, idField);
+                combined = mergeUniqueById(combined, idxData.items, idField, true);
               }
               if (pullAllYears && Array.isArray(idxData.availableYears)) {
                 idxData.availableYears.forEach(y => yearsToFetch.add(String(y)));
@@ -8244,7 +8337,7 @@ Salam Olahraga & Fairplay!`;
                 if (partSnap.exists()) {
                   const pData = partSnap.data();
                   if (Array.isArray(pData.items)) {
-                    combined = mergeUniqueById(combined, pData.items, idField);
+                    combined = mergeUniqueById(combined, pData.items, idField, true);
                   }
                 }
               } catch (ePart) {}
@@ -8256,7 +8349,7 @@ Salam Olahraga & Fairplay!`;
               const mData = mainSnap.data();
               if (Array.isArray(mData.deletedIds)) mData.deletedIds.forEach(id => markRecordDeleted(id));
               if (Array.isArray(mData[collectionName])) {
-                combined = mergeUniqueById(combined, mData[collectionName], idField);
+                combined = mergeUniqueById(combined, mData[collectionName], idField, true);
               }
             }
           } catch (err) {
@@ -8277,7 +8370,7 @@ Salam Olahraga & Fairplay!`;
           for (const yr of yearsToFetch) {
             const yrRes = await secureRtdbRequest(`ssf_v2/${collectionName}/years/${yr}`, 'GET');
             if (yrRes.ok && Array.isArray(yrRes.data)) {
-              combined = mergeUniqueById(combined, yrRes.data, idField);
+              combined = mergeUniqueById(combined, yrRes.data, idField, true);
             }
           }
         } catch (err) {
@@ -8318,6 +8411,8 @@ Salam Olahraga & Fairplay!`;
           }
         } catch (e) {}
         await Promise.allSettled([
+          savePartitionedCollectionToCloud('products', products, 'id'),
+          savePartitionedCollectionToCloud('employees', employees, 'id'),
           savePartitionedCollectionToCloud('attendance', attendance, 'id'),
           savePartitionedCollectionToCloud('closings', closings, 'id'),
           savePartitionedCollectionToCloud('transactions', transactions, 'id'),
@@ -8639,9 +8734,11 @@ Salam Olahraga & Fairplay!`;
       };
 
       window.pullAllMultiYearPartitions = async function(showNotif = true) {
-        if (showNotif) showToast('Menarik seluruh arsip multi-tahun dari Database Cloud...', 'info');
+        if (showNotif) showToast('Menarik seluruh arsip multi-tahun & produk dari Database Cloud...', 'info');
         try {
-          const [cTrx, cBkg, cBon, cExp, cAtt, cCls] = await Promise.all([
+          const [cPrd, cEmp, cTrx, cBkg, cBon, cExp, cAtt, cCls] = await Promise.all([
+            loadPartitionedCollectionFromCloud('products', products, 'id', true),
+            loadPartitionedCollectionFromCloud('employees', employees, 'id', true),
             loadPartitionedCollectionFromCloud('transactions', transactions, 'id', true),
             loadPartitionedCollectionFromCloud('bookings', bookings, 'bookingId', true),
             loadPartitionedCollectionFromCloud('bons', bons, 'id', true),
@@ -8650,6 +8747,8 @@ Salam Olahraga & Fairplay!`;
             loadPartitionedCollectionFromCloud('closings', closings, 'id', true)
           ]);
 
+          products = cPrd;
+          employees = cEmp;
           transactions = cTrx;
           bookings = cBkg;
           bons = cBon;
@@ -8657,14 +8756,20 @@ Salam Olahraga & Fairplay!`;
           attendance = cAtt;
           closings = cCls;
 
-          setStored(KEY_TRANSACTIONS, transactions);
-          setStored(KEY_BOOKINGS, bookings);
-          setStored(KEY_BONS, bons);
-          setStored(KEY_EXPENSES, expenses);
-          setStored(KEY_ATTENDANCE, attendance);
-          setStored(KEY_CLOSINGS, closings);
+          try {
+            localStorage.setItem(KEY_PRODUCTS, JSON.stringify(products));
+            localStorage.setItem(KEY_EMPLOYEES, JSON.stringify(employees));
+            localStorage.setItem(KEY_TRANSACTIONS, JSON.stringify(transactions));
+            localStorage.setItem(KEY_BOOKINGS, JSON.stringify(bookings));
+            localStorage.setItem(KEY_BONS, JSON.stringify(bons));
+            localStorage.setItem(KEY_EXPENSES, JSON.stringify(expenses));
+            localStorage.setItem(KEY_ATTENDANCE, JSON.stringify(attendance));
+            localStorage.setItem(KEY_CLOSINGS, JSON.stringify(closings));
+          } catch (e) {}
 
           renderDashboard();
+          renderPosCatalog();
+          renderInventoryTable();
           renderAttendancePage();
           renderClosingDashboard(false);
           renderBookingList();
@@ -8673,7 +8778,7 @@ Salam Olahraga & Fairplay!`;
           updateDatabaseHealthMetrics();
 
           if (showNotif) {
-            showToast(`✅ Seluruh arsip tahunan berhasil dimuat! (Transaksi: ${transactions.length}, Absensi: ${attendance.length}, Tutup Kasir: ${closings.length})`, 'success');
+            showToast(`✅ Seluruh data & arsip tahunan berhasil dimuat! (Produk: ${products.length}, Transaksi: ${transactions.length}, Absensi: ${attendance.length})`, 'success');
           }
         } catch (err) {
           if (showNotif) showToast('Gagal menarik sebagian arsip: ' + err.message, 'error');
@@ -8719,14 +8824,14 @@ Salam Olahraga & Fairplay!`;
             const parsed = JSON.parse(evt.target.result);
             const d = parsed.data || parsed;
             if (Array.isArray(d.deletedIds)) d.deletedIds.forEach(id => markRecordDeleted(id));
-            if (Array.isArray(d.products)) products = mergeUniqueById(products, d.products, 'id');
-            if (Array.isArray(d.transactions)) transactions = mergeUniqueById(transactions, d.transactions, 'id');
-            if (Array.isArray(d.bons)) bons = mergeUniqueById(bons, d.bons, 'id');
-            if (Array.isArray(d.bookings)) bookings = mergeUniqueById(bookings, d.bookings, 'bookingId');
-            if (Array.isArray(d.expenses)) expenses = mergeUniqueById(expenses, d.expenses, 'id');
-            if (Array.isArray(d.attendance)) attendance = mergeUniqueById(attendance, d.attendance, 'id');
-            if (Array.isArray(d.employees)) employees = mergeUniqueById(employees, d.employees, 'id');
-            if (Array.isArray(d.closings)) closings = mergeUniqueById(closings, d.closings, 'id');
+            if (Array.isArray(d.products)) products = mergeUniqueById(products, d.products, 'id', true);
+            if (Array.isArray(d.transactions)) transactions = mergeUniqueById(transactions, d.transactions, 'id', true);
+            if (Array.isArray(d.bons)) bons = mergeUniqueById(bons, d.bons, 'id', true);
+            if (Array.isArray(d.bookings)) bookings = mergeUniqueById(bookings, d.bookings, 'bookingId', true);
+            if (Array.isArray(d.expenses)) expenses = mergeUniqueById(expenses, d.expenses, 'id', true);
+            if (Array.isArray(d.attendance)) attendance = mergeUniqueById(attendance, d.attendance, 'id', true);
+            if (Array.isArray(d.employees)) employees = mergeUniqueById(employees, d.employees, 'id', true);
+            if (Array.isArray(d.closings)) closings = mergeUniqueById(closings, d.closings, 'id', true);
 
             setStored(KEY_PRODUCTS, products);
             setStored(KEY_TRANSACTIONS, transactions);
